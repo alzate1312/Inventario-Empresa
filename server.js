@@ -15,22 +15,24 @@ const upload = multer({ dest: 'uploads/' });
 const JWT_SECRET = 'clave_secreta_empresa_2026';
 let db;
  
+// Variables de entorno para Aiven / Render
+const DB_HOST = process.env.DB_HOST || 'localhost';
+const DB_USER = process.env.DB_USER || 'root';
+const DB_PASSWORD = process.env.DB_PASSWORD || '';
+const DB_NAME = process.env.DB_NAME || 'inventario_maquinas';
+const DB_PORT = process.env.DB_PORT || 3306;
+ 
 async function inicializarBD() {
   try {
-    const conexionInicial = await mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: ''
-    });
- 
-    await conexionInicial.query('CREATE DATABASE IF NOT EXISTS inventario_maquinas;');
-    await conexionInicial.end();
+    const esNube = process.env.DB_HOST ? true : false;
  
     db = mysql.createPool({
-      host: 'localhost',
-      user: 'root',
-      password: '',
-      database: 'inventario_maquinas'
+      host: DB_HOST,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      database: DB_NAME,
+      port: DB_PORT,
+      ssl: esNube ? { rejectUnauthorized: false } : false
     });
  
     // Tabla de Usuarios
@@ -61,7 +63,7 @@ async function inicializarBD() {
       );
     `);
  
-    // Tabla de Mantenimientos e Historial Técnico
+    // Tabla de Mantenimientos
     await db.query(`
       CREATE TABLE IF NOT EXISTS mantenimientos (
         id_mantenimiento INT AUTO_INCREMENT PRIMARY KEY,
@@ -76,164 +78,25 @@ async function inicializarBD() {
       );
     `);
  
-    // Crear/Actualizar Administrador por defecto
+    // Usuarios por defecto
     const hashAdmin = await bcrypt.hash('admin123', 10);
     await db.query(`
-      INSERT INTO usuarios (usuario, password_hash, nombre_completo, rol) 
+      INSERT INTO usuarios (usuario, password_hash, nombre_completo, rol)
       VALUES ('admin', ?, 'Administrador General', 'admin')
       ON DUPLICATE KEY UPDATE password_hash = ?;
     `, [hashAdmin, hashAdmin]);
  
-    // Crear/Actualizar Técnico por defecto
     const hashTecnico = await bcrypt.hash('tecnico123', 10);
     await db.query(`
-      INSERT INTO usuarios (usuario, password_hash, nombre_completo, rol) 
+      INSERT INTO usuarios (usuario, password_hash, nombre_completo, rol)
       VALUES ('tecnico', ?, 'Técnico de Campo', 'tecnico')
       ON DUPLICATE KEY UPDATE password_hash = ?;
     `, [hashTecnico, hashTecnico]);
  
-    console.log('--> Base de datos e historial de mantenimientos inicializados.');
+    console.log('--> Base de datos e historial de mantenimientos inicializados correctamente.');
  
   } catch (error) {
     console.error('Error al inicializar la base de datos:', error.message);
   }
 }
- 
-// LOGIN
-app.post('/api/login', async (req, res) => {
-  const { usuario, password, rolRequerido } = req.body;
-  try {
-    const [rows] = await db.query('SELECT * FROM usuarios WHERE usuario = ? AND activo = TRUE', [usuario]);
-    if (rows.length === 0) return res.status(401).json({ error: 'Usuario no encontrado' });
- 
-    const user = rows[0];
-    if (rolRequerido && user.rol !== rolRequerido) {
-      return res.status(403).json({ error: `El usuario no tiene rol de ${rolRequerido}` });
-    }
- 
-    const passwordMatch = await bcrypt.compare(password, user.password_hash);
-    if (!passwordMatch) return res.status(401).json({ error: 'Contraseña incorrecta' });
- 
-    const token = jwt.sign({ id: user.id_usuario, rol: user.rol }, JWT_SECRET, { expiresIn: '8h' });
-    res.json({ token, rol: user.rol, nombre: user.nombre_completo });
-  } catch (err) {
-    res.status(500).json({ error: 'Error interno en el servidor' });
-  }
-});
- 
-// CONSULTAR TODOS LOS EQUIPOS
-app.get('/api/equipos', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT * FROM equipos ORDER BY id_equipo DESC');
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al consultar equipos' });
-  }
-});
- 
-// REGISTRAR UN EQUIPO MANUAL
-app.post('/api/equipos', async (req, res) => {
-  const { codigo_interno, numero_serie, marca, modelo, ubicacion_cliente } = req.body;
-  try {
-    await db.query(
-      'INSERT INTO equipos (codigo_interno, numero_serie, marca, modelo, ubicacion_cliente) VALUES (?, ?, ?, ?, ?)',
-      [codigo_interno, numero_serie, marca, modelo, ubicacion_cliente]
-    );
-    res.json({ mensaje: 'Equipo registrado correctamente' });
-  } catch (err) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      res.status(400).json({ error: 'El código interno o número de serie ya existe.' });
-    } else {
-      res.status(500).json({ error: err.message });
-    }
-  }
-});
- 
-// CARGA MASIVA CSV
-app.post('/api/equipos/cargar-masivo', upload.single('archivo'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
- 
-  const resultados = [];
-  fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on('data', (data) => {
-      if (data.Placa_Interna && data.Numero_Serie) {
-        resultados.push([
-          data.Placa_Interna.trim(),
-          data.Numero_Serie.trim(),
-          data.Marca ? data.Marca.trim() : 'Ricoh',
-          data.Modelo ? data.Modelo.trim() : 'N/A',
-          data.Ubicacion ? data.Ubicacion.trim() : 'Sin Ubicación'
-        ]);
-      }
-    })
-    .on('end', async () => {
-      try {
-        if (resultados.length === 0) {
-          fs.unlinkSync(req.file.path);
-          return res.status(400).json({ error: 'El archivo CSV no tiene el formato correcto.' });
-        }
- 
-        const sql = `
-          INSERT INTO equipos (codigo_interno, numero_serie, marca, modelo, ubicacion_cliente)
-          VALUES ?
-          ON DUPLICATE KEY UPDATE 
-            marca = VALUES(marca),
-            modelo = VALUES(modelo),
-            ubicacion_cliente = VALUES(ubicacion_cliente);
-        `;
-        await db.query(sql, [resultados]);
-        fs.unlinkSync(req.file.path);
-        res.json({ mensaje: `Procesados ${resultados.length} registros sin duplicación.` });
-      } catch (err) {
-        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        res.status(500).json({ error: err.message });
-      }
-    });
-});
- 
-// CONSULTAR HISTORIAL DE MANTENIMIENTOS DE UN EQUIPO
-app.get('/api/mantenimientos/:id_equipo', async (req, res) => {
-  const { id_equipo } = req.params;
-  try {
-    const [rows] = await db.query(
-      'SELECT * FROM mantenimientos WHERE id_equipo = ? ORDER BY fecha_servicio DESC',
-      [id_equipo]
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener historial' });
-  }
-});
- 
-// REGISTRAR UN MANTENIMIENTO Y ACTUALIZAR CONTADOR DEL EQUIPO
-app.post('/api/mantenimientos', async (req, res) => {
-  const { id_equipo, tipo_servicio, contador_impresiones, descripcion, repuestos_cambiados, tecnico } = req.body;
-  try {
-    // 1. Insertar el mantenimiento
-    await db.query(
-      'INSERT INTO mantenimientos (id_equipo, tipo_servicio, contador_impresiones, descripcion, repuestos_cambiados, tecnico) VALUES (?, ?, ?, ?, ?, ?)',
-      [id_equipo, tipo_servicio, contador_impresiones || 0, descripcion, repuestos_cambiados || 'Ninguno', tecnico || 'Técnico']
-    );
- 
-    // 2. Actualizar el contador actual en la tabla de equipos
-    if (contador_impresiones) {
-      await db.query(
-        'UPDATE equipos SET contador_actual = ? WHERE id_equipo = ? AND contador_actual < ?',
-        [contador_impresiones, id_equipo, contador_impresiones]
-      );
-    }
- 
-    res.json({ mensaje: 'Mantenimiento e historial registrados correctamente.' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
- 
-app.listen(3000, async () => {
-  await inicializarBD();
-  console.log('====================================================');
-  console.log('Servidor corriendo en: http://localhost:3000');
-  console.log('====================================================');
-});
  

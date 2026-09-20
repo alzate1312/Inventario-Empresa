@@ -3,45 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acceso al Sistema - Control Técnico</title>
+  <title>Control Técnico - Iniciar Sesión</title>
   <style>
-    * { box-sizing: border-box; font-family: system-ui, sans-serif; margin: 0; padding: 0; }
-    body { background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
-    .card { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    h2 { margin-bottom: 20px; font-size: 1.4rem; text-align: center; }
-    input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; }
-    button { width: 100%; padding: 12px; background: #2563eb; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #1d4ed8; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e3a8a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      width: 320px;
+      text-align: center;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .login-card h2 {
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: none;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: #0284c7;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0369a1;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
+ 
+  <div class="login-card">
     <h2>Control Técnico</h2>
-    <input type="text" id="user" placeholder="Usuario">
-    <input type="password" id="pass" placeholder="Contraseña">
-    <button onclick="login()">Ingresar al Sistema</button>
+    <form id="formLogin">
+      <input type="text" id="usuario" placeholder="Usuario" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button type="submit">Ingresar al Sistema</button>
+    </form>
   </div>
-
+ 
   <script>
-    async function login() {
-      const u = document.getElementById('user').value;
-      const p = document.getElementById('pass').value;
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario: u, password: p })
-      });
-      const data = await res.json();
-      if (data.token) {
-       if (data.rol === 'admin') {
-  window.location.href = '/admin.html';
-} else {
-  alert('Bienvenido Técnico');
-} 
-      } else {
-        alert('Error: ' + data.error);
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const usuario = document.getElementById('usuario').value;
+      const password = document.getElementById('password').value;
+ 
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, password })
+        });
+ 
+        const data = await res.json();
+ 
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('rol', data.rol);
+          localStorage.setItem('nombre', data.nombre);
+ 
+          alert('Bienvenido ' + (data.rol === 'admin' ? 'Administrador' : 'Técnico'));
+ 
+          if (data.rol === 'admin') {
+            window.location.href = '/admin.html';
+          } else if (data.rol === 'tecnico') {
+            window.location.href = '/tecnico.html';
+          }
+        } else {
+          alert(data.error || 'Credenciales incorrectas');
+        }
+      } catch (err) {
+        alert('Error de conexión con el servidor');
       }
-    }
+    });
   </script>
 </body>
 </html>

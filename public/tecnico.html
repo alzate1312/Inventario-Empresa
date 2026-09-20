@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Técnico</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h2 { color: #333; text-align: center; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, select, textarea, button { width: 100%; padding: 10px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background-color: #007bff; color: white; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; }
+    button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Registro de Mantenimiento</h2>
+    <form id="formMantenimiento">
+      <label>ID del Equipo:</label>
+      <input type="number" id="id_equipo" required placeholder="Ej: 1">
+ 
+      <label>Tipo de Servicio:</label>
+      <select id="tipo_servicio" required>
+        <option value="Preventivo">Preventivo</option>
+        <option value="Correctivo">Correctivo</option>
+        <option value="Cambio Insumo">Cambio Insumo</option>
+        <option value="Diagnóstico">Diagnóstico</option>
+      </select>
+ 
+      <label>Contador de Impresiones:</label>
+      <input type="number" id="contador_impresiones" required placeholder="Ej: 15000">
+ 
+      <label>Descripción del Servicio:</label>
+      <textarea id="descripcion" rows="3" required placeholder="Detalles del trabajo realizado"></textarea>
+ 
+      <label>Repuestos Cambiados:</label>
+      <input type="text" id="repuestos_cambiados" placeholder="Ej: Cilindro, Cuchilla">
+ 
+      <label>Técnico Responsable:</label>
+      <input type="text" id="tecnico" required placeholder="Tu nombre">
+ 
+      <button type="submit">Guardar Mantenimiento</button>
+    </form>
+  </div>
+ 
+  <script>
+    document.getElementById('formMantenimiento').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const datos = {
+        id_equipo: document.getElementById('id_equipo').value,
+        tipo_servicio: document.getElementById('tipo_servicio').value,
+        contador_impresiones: document.getElementById('contador_impresiones').value,
+        descripcion: document.getElementById('descripcion').value,
+        repuestos_cambiados: document.getElementById('repuestos_cambiados').value,
+        tecnico: document.getElementById('tecnico').value
+      };
+ 
+      const res = await fetch('/api/mantenimientos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      });
+ 
+      const resData = await res.json();
+      if (res.ok) {
+        alert(resData.mensaje);
+        document.getElementById('formMantenimiento').reset();
+      } else {
+        alert('Error: ' + resData.error);
+      }
+    });
+  </script>
+</body>
+</html>

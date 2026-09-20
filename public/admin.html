@@ -3,71 +3,196 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Administrador - Inventario</title>
+  <title>Panel de Administración - Control de Inventario</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f6f9; }
-    .box { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    input, select, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-    button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background: #343a40; color: white; }
+    :root {
+      --primary: #1e293b;
+      --accent: #2563eb;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto 20px auto;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .full-width { grid-column: 1 / -1; }
+    h2 { margin-top: 0; color: var(--primary); font-size: 1.25rem; }
+    label { font-size: 0.875rem; font-weight: 600; margin-top: 10px; display: block; }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    .btn-secondary { background-color: #475569; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    th { background-color: #f1f5f9; color: var(--primary); font-weight: 600; }
+    .file-input-wrapper {
+      border: 2px dashed var(--border);
+      padding: 20px;
+      text-align: center;
+      border-radius: 8px;
+      background: #fafafa;
+    }
   </style>
 </head>
 <body>
  
-  <div class="box">
-    <h2>Registrar Nuevo Equipo</h2>
-    <form id="formEquipo">
-      <input type="text" id="codigo_interno" placeholder="Código Interno (Ej: EQ-001)" required>
-      <input type="text" id="numero_serie" placeholder="Número de Serie" required>
-      <input type="text" id="marca" placeholder="Marca (Ej: Ricoh)" value="Ricoh">
-      <input type="text" id="modelo" placeholder="Modelo (Ej: MP C307)" required>
-      <input type="text" id="ubicacion_cliente" placeholder="Ubicación o Cliente">
-      <input type="number" id="contador_actual" placeholder="Contador Inicial" value="0">
-      <button type="submit">Guardar Equipo</button>
-    </form>
+  <div class="header">
+    <h1>Control de Inventario</h1>
+    <button style="width: auto; margin: 0;" class="btn-secondary" onclick="logout()">Cerrar Sesión</button>
   </div>
  
-  <div class="box">
-    <h2>Inventario Registrado</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Código</th>
-          <th>Serie</th>
-          <th>Marca</th>
-          <th>Modelo</th>
-          <th>Ubicación</th>
-          <th>Contador</th>
-        </tr>
-      </thead>
-      <tbody id="tablaEquipos"></tbody>
-    </table>
+  <div class="container">
+    
+    <!-- Registro Manual -->
+    <div class="card">
+      <h2>Registrar Nuevo Equipo</h2>
+      <form id="formEquipo">
+        <label>Código Interno</label>
+        <input type="text" id="codigo_interno" placeholder="Ej: EQ-001" required>
+ 
+        <label>Número de Serie</label>
+        <input type="text" id="numero_serie" placeholder="Ej: W12345678" required>
+ 
+        <label>Marca</label>
+        <input type="text" id="marca" value="Ricoh" required>
+ 
+        <label>Modelo</label>
+        <input type="text" id="modelo" placeholder="Ej: MP C307" required>
+ 
+        <label>Ubicación / Cliente</label>
+        <input type="text" id="ubicacion_cliente" placeholder="Ej: Sede Central - Piso 2">
+ 
+        <label>Contador Inicial</label>
+        <input type="number" id="contador_actual" value="0">
+ 
+        <button type="submit">Guardar Equipo</button>
+      </form>
+    </div>
+ 
+    <!-- Carga Masiva por CSV -->
+    <div class="card">
+      <h2>Carga Masiva (Archivo CSV)</h2>
+      <p style="font-size: 0.85rem; color: #64748b;">Selecciona un archivo CSV con las columnas: <code>codigo_interno, numero_serie, marca, modelo, ubicacion_cliente, contador_actual</code></p>
+      
+      <form id="formCsv" enctype="multipart/form-data">
+        <div class="file-input-wrapper">
+          <input type="file" id="archivoCsv" accept=".csv" required>
+        </div>
+        <button type="submit" class="btn-secondary">Subir y Procesar Archivo</button>
+      </form>
+    </div>
+ 
+    <!-- Inventario General -->
+    <div class="card full-width">
+      <h2>Inventario Registrado</h2>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Código</th>
+              <th>Serie</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Ubicación</th>
+              <th>Contador</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaEquipos"></tbody>
+        </table>
+      </div>
+    </div>
+ 
   </div>
  
   <script>
     async function cargarEquipos() {
-      const res = await fetch('/api/equipos');
-      const equipos = await res.json();
-      const tbody = document.getElementById('tablaEquipos');
-      tbody.innerHTML = '';
-      equipos.forEach(eq => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${eq.id_equipo}</td>
-            <td>${eq.codigo_interno}</td>
-            <td>${eq.numero_serie}</td>
-            <td>${eq.marca}</td>
-            <td>${eq.modelo}</td>
-            <td>${eq.ubicacion_cliente || '-'}</td>
-            <td>${eq.contador_actual}</td>
-          </tr>
-        `;
-      });
+      try {
+        const res = await fetch('/api/equipos');
+        const equipos = await res.json();
+        const tbody = document.getElementById('tablaEquipos');
+        tbody.innerHTML = '';
+        equipos.forEach(eq => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${eq.id_equipo}</td>
+              <td><strong>${eq.codigo_interno}</strong></td>
+              <td>${eq.numero_serie}</td>
+              <td>${eq.marca}</td>
+              <td>${eq.modelo}</td>
+              <td>${eq.ubicacion_cliente || '-'}</td>
+              <td>${eq.contador_actual}</td>
+              <td>
+                <button style="width:auto; padding: 4px 8px; margin:0; font-size: 0.8rem;" onclick="verHistorial(${eq.id_equipo})">Historial</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error('Error al cargar equipos:', err);
+      }
     }
  
+    // Guardar Equipo Individual
     document.getElementById('formEquipo').addEventListener('submit', async (e) => {
       e.preventDefault();
       const datos = {
@@ -85,15 +210,49 @@
         body: JSON.stringify(datos)
       });
  
-      const resData = await res.json();
+      const data = await res.json();
       if (res.ok) {
-        alert(resData.mensaje);
+        alert(data.mensaje);
         document.getElementById('formEquipo').reset();
+        document.getElementById('marca').value = 'Ricoh';
         cargarEquipos();
       } else {
-        alert('Error: ' + resData.error);
+        alert('Error: ' + data.error);
       }
     });
+ 
+    // Carga Masiva de Archivo CSV
+    document.getElementById('formCsv').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('archivoCsv');
+      if (!input.files[0]) return alert('Selecciona un archivo primero');
+ 
+      const formData = new FormData();
+      formData.append('archivo', input.files[0]);
+ 
+      const res = await fetch('/api/equipos/upload-csv', {
+        method: 'POST',
+        body: formData
+      });
+ 
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.mensaje);
+        document.getElementById('formCsv').reset();
+        cargarEquipos();
+      } else {
+        alert('Error al procesar el archivo CSV: ' + (data.error || 'Error desconocido'));
+      }
+    });
+ 
+    function verHistorial(id) {
+      alert('Consultando el historial del equipo ID: ' + id);
+    }
+ 
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/index.html';
+    }
  
     cargarEquipos();
   </script>

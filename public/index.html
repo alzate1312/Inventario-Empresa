@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso al Sistema - Control Técnico</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, sans-serif; margin: 0; padding: 0; }
+    body { background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .card { background: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    h2 { margin-bottom: 20px; font-size: 1.4rem; text-align: center; }
+    input { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; }
+    button { width: 100%; padding: 12px; background: #2563eb; color: white; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Control Técnico</h2>
+    <input type="text" id="user" placeholder="Usuario">
+    <input type="password" id="pass" placeholder="Contraseña">
+    <button onclick="login()">Ingresar al Sistema</button>
+  </div>
+
+  <script>
+    async function login() {
+      const u = document.getElementById('user').value;
+      const p = document.getElementById('pass').value;
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: u, password: p })
+      });
+      const data = await res.json();
+      if (data.token) {
+       if (data.rol === 'admin') {
+  window.location.href = '/admin.html';
+} else {
+  alert('Bienvenido Técnico');
+} 
+      } else {
+        alert('Error: ' + data.error);
+      }
+    }
+  </script>
+</body>
+</html>

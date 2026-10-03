@@ -3,46 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Módulo de Almacén - Inventario</title>
+    <title>Módulo de Almacén - Copy Master Technology</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1, h2 { color: #0056b3; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-        .btn-salir { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; text-decoration: none; }
-        .btn-salir:hover { background: #c82333; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #0056b3; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-        th { background-color: #f8f9fa; }
-        .section { margin-bottom: 40px; }
-        .alerta-stock { background-color: #ffcccc; color: #990000; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f6f9; 
+            margin: 0; 
+            padding: 20px; 
+            color: #333; 
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 10px; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08); 
+            border-top: 6px solid #0056b3;
+            position: relative;
+        }
+        /* Franja decorativa CMYK inspirada en los colores del logo de la empresa */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: linear-gradient(90deg, #5bc0de 25%, #ff007f 25% 50%, #ffd166 50% 75%, #212529 75%);
+            border-radius: 2px;
+        }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid #edf2f7; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px; 
+        }
+        h1, h2 { 
+            color: #0b2545; 
+        }
+        h1 {
+            font-size: 24px;
+            letter-spacing: 0.5px;
+        }
+        .btn-salir { 
+            background: #dc3545; 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            text-decoration: none; 
+        }
+        .btn-salir:hover { 
+            background: #c82333; 
+        }
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            color: #2b2d42;
+        }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ccd5ae; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            background-color: #fafbfc;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #0056b3;
+            outline: none;
+            background-color: #fff;
+        }
+        button { 
+            background: #0056b3; 
+            color: white; 
+            border: none; 
+            padding: 10px 18px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { 
+            background: #003d82; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+        }
+        th, td { 
+            border: 1px solid #e2e8f0; 
+            padding: 10px; 
+            text-align: left; 
+            font-size: 14px; 
+        }
+        th { 
+            background-color: #f8fafc; 
+            color: #1e293b;
+        }
+        .section { 
+            margin-bottom: 35px; 
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #edf2f7;
+        }
+        .alerta-stock { 
+            background-color: #fee2e2; 
+            color: #991b1b; 
+            font-weight: bold; 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Gestión de Almacén e Inventario</h1>
+        <h1>Copy Master Technology - Almacén</h1>
         <div>
-            <span id="nombreUsuario" style="margin-right: 15px; font-weight: bold;"></span>
+            <span id="nombreUsuario" style="margin-right: 15px; font-weight: bold; color: #475569;"></span>
             <button class="btn-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
     </div>
 
     <!-- SECCIÓN: CARGA MASIVA DE BASE DE DATOS (EXCEL / CSV) -->
-    <div class="section" style="background: #e9f7ef; padding: 20px; border-radius: 6px; border: 2px dashed #27ae60;">
-        <h2 style="color: #27ae60; margin-top: 0;">Importar Base de Datos Masiva (Excel / CSV)</h2>
-        <p style="font-size: 14px; color: #555;">Sube el archivo con tu base de datos existente. Columnas compatibles: <b>codigo_interno</b>, <b>descripcion</b>, <b>stock_actual</b>, <b>stock_minimo</b>, etc.</p>
+    <div class="section" style="background: #f0fdf4; border: 2px dashed #4ade80;">
+        <h2 style="color: #166534; margin-top: 0;">Importar Base de Datos Masiva (Excel / CSV)</h2>
+        <p style="font-size: 14px; color: #475569;">Sube el archivo con tu base de datos existente. Columnas compatibles: <b>codigo_interno</b>, <b>descripcion</b>, <b>stock_actual</b>, <b>stock_minimo</b>.</p>
         <form id="formUploadRepuestos">
             <div class="form-group">
                 <input type="file" id="archivoRepuestos" accept=".csv, .xlsx, .xls" required>
             </div>
-            <button type="submit" style="background: #27ae60;">Subir y Cargar Base de Datos Completa</button>
+            <button type="submit" style="background: #16a34a;">Subir y Cargar Base de Datos Completa</button>
         </form>
     </div>
 
@@ -243,7 +347,7 @@
                     
                     tablaHist.innerHTML += `<tr>
                         <td>${new Date(m.fecha_movimiento).toLocaleString()}</td>
-                        <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? 'green' : 'red'}; font-weight:bold;">${m.tipo_movimiento}</td>
+                        <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#16a34a' : '#dc2626'}; font-weight:bold;">${m.tipo_movimiento}</td>
                         <td>${m.codigo_interno}</td>
                         <td><b>${m.cantidad}</b></td>
                         <td>${detalle}</td>

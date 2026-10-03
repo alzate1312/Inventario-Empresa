@@ -3,46 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copy Master Technology - Core Dashboard</title>
+    <title>Copy Master Technology - Módulo de Almacén</title>
     <style>
         :root {
-            --bg-deep: #050b14;
-            --bg-panel: rgba(15, 23, 42, 0.75);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --accent-cyan: #00f2fe;
-            --accent-blue: #4facfe;
-            --accent-purple: #a855f7;
-            --accent-green: #10b981;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --primary-blue: #0b2545;
+            --accent-cyan: #00b4d8;
+            --accent-magenta: #ff007f;
+            --accent-yellow: #f59e0b;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
         }
 
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            background: var(--bg-deep);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(79, 172, 254, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
-            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-color); 
             margin: 0; 
             padding: 0; 
             color: var(--text-main); 
         }
 
-        /* Banner Superior Estilo Futurista / Ejecutivo */
+        /* Banner Superior Inspirado en CMYK */
         .top-banner {
-            background: rgba(10, 15, 30, 0.85);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border-glass);
+            background: linear-gradient(135deg, #0b2545 0%, #1d4ed8 100%);
             width: 100%;
             padding: 24px 40px;
             box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(11, 37, 69, 0.15);
         }
 
         .brand-area {
@@ -51,30 +43,28 @@
         }
 
         .brand-title {
-            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 24px;
+            color: #ffffff;
+            font-size: 26px;
             font-weight: 800;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             margin: 0;
         }
 
         .brand-subtitle {
-            color: var(--accent-cyan);
-            font-size: 11px;
+            color: #38bdf8;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 3px;
             margin-top: 4px;
             font-weight: 700;
         }
 
-        /* Franja CMYK de Neón Luminoso */
+        /* Franja CMYK Radiante */
         .cmyk-bar {
-            height: 4px;
+            height: 6px;
             width: 100%;
-            background: linear-gradient(90deg, #00f2fe 0%, #ff007f 33%, #ffd166 66%, #10b981 100%);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+            background: linear-gradient(90deg, #00b4d8 25%, #ff007f 25% 50%, #facc15 50% 75%, #0f172a 75%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .user-panel {
@@ -84,39 +74,36 @@
         }
 
         .user-panel span {
-            color: var(--text-muted);
+            color: #e2e8f0;
             font-weight: 500;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-glass);
-            padding: 8px 16px;
-            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 6px 16px;
+            border-radius: 20px;
             font-size: 13px;
         }
 
         .btn-salir { 
-            background: rgba(239, 68, 68, 0.15); 
-            color: #f87171; 
-            border: 1px solid rgba(239, 68, 68, 0.3); 
+            background: #ef4444; 
+            color: white; 
+            border: none; 
             padding: 8px 18px; 
             border-radius: 8px; 
             cursor: pointer; 
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: background 0.2s;
         }
         .btn-salir:hover { 
-            background: #ef4444; 
-            color: white; 
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+            background: #dc2626; 
         }
 
-        /* Contenedor Principal Grid */
+        /* Contenedor Principal */
         .main-container {
             max-width: 1350px;
             margin: 35px auto;
             padding: 0 25px;
         }
 
-        /* KPIs Estilo Tarjetas Flotantes con Neón */
+        /* Tarjetas de Métricas (KPIs Coloridos) */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -125,20 +112,16 @@
         }
 
         .kpi-card {
-            background: var(--bg-panel);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-glass);
+            background: white;
             padding: 24px;
-            border-radius: 16px;
+            border-radius: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .kpi-card::before {
@@ -146,30 +129,30 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 4px;
+            width: 6px;
             height: 100%;
         }
 
-        .kpi-1::before { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
-        .kpi-2::before { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
-        .kpi-3::before { background: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple); }
+        .kpi-1::before { background: var(--accent-cyan); }
+        .kpi-2::before { background: var(--accent-magenta); }
+        .kpi-3::before { background: var(--accent-yellow); }
 
         .kpi-info h3 {
             margin: 0;
             font-size: 12px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .kpi-info p {
-            margin: 8px 0 0 0;
-            font-size: 32px;
+            margin: 6px 0 0 0;
+            font-size: 28px;
             font-weight: 800;
-            color: #ffffff;
+            color: var(--primary-blue);
         }
 
-        /* Cuadrícula de Contenido */
+        /* Cuadrícula de Tarjetas */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -181,55 +164,52 @@
             grid-column: span 2;
         }
 
-        /* Tarjetas Estilo Glassmorphism */
         .card { 
-            background: var(--bg-panel); 
-            backdrop-filter: blur(16px);
+            background: var(--card-bg); 
             padding: 30px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
-            border: 1px solid var(--border-glass);
-            transition: all 0.3s ease;
+            border-radius: 14px; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05); 
+            border: 1px solid var(--border-color);
+            border-top: 5px solid var(--primary-blue);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .card:hover {
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
         }
 
-        .upload-card {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
+        .upload-card { border-top-color: #10b981; background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); }
+        .form-card { border-top-color: var(--accent-cyan); }
+        .movement-card { border-top-color: var(--accent-magenta); }
+        .table-card { border-top-color: var(--accent-yellow); }
 
         h2 { 
-            color: #ffffff; 
+            color: var(--primary-blue); 
             font-size: 17px;
             margin-top: 0;
-            border-bottom: 1px solid var(--border-glass);
+            border-bottom: 2px solid #f1f5f9;
             padding-bottom: 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-            letter-spacing: 0.5px;
         }
 
         .search-box {
             padding: 8px 14px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-glass);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 13px;
             width: 240px;
-            color: white;
-            transition: all 0.2s;
+            background: #f8fafc;
         }
 
         .search-box:focus {
             border-color: var(--accent-cyan);
             outline: none;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
         }
 
         .form-group { 
@@ -239,64 +219,58 @@
         label { 
             display: block; 
             margin-bottom: 7px; 
-            font-weight: 500; 
+            font-weight: 600; 
             font-size: 13px;
-            color: var(--text-muted);
+            color: #475569;
         }
 
         input, select, textarea { 
             width: 100%; 
             padding: 12px; 
-            background: rgba(0, 0, 0, 0.4); 
-            border: 1px solid var(--border-glass); 
+            border: 1px solid var(--border-color); 
             border-radius: 8px; 
             box-sizing: border-box; 
-            color: #ffffff;
+            background-color: #f8fafc;
             font-size: 14px;
-            transition: all 0.2s;
+            color: #1e293b;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: var(--accent-cyan);
             outline: none;
-            background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 180, 216, 0.15);
         }
 
         button.btn-action { 
-            background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%); 
+            background: linear-gradient(135deg, #0b2545 0%, #1d4ed8 100%); 
             color: white; 
             border: none; 
             padding: 12px 20px; 
             border-radius: 8px; 
             cursor: pointer; 
             font-size: 14px; 
-            font-weight: 600;
+            font-weight: bold;
             width: 100%;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
         }
         button.btn-action:hover { 
-            opacity: 0.95;
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
-            transform: translateY(-1px);
+            opacity: 0.9; 
         }
 
         .btn-export {
-            background: rgba(16, 185, 129, 0.15);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: #10b981;
+            color: white;
+            border: none;
             padding: 7px 14px;
             border-radius: 8px;
             font-size: 13px;
             cursor: pointer;
             font-weight: 600;
-            transition: all 0.2s;
         }
         .btn-export:hover {
-            background: #10b981;
-            color: white;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+            background: #059669;
         }
 
         table { 
@@ -306,32 +280,32 @@
         }
 
         th, td { 
-            border-bottom: 1px solid var(--border-glass); 
+            border-bottom: 1px solid var(--border-color); 
             padding: 14px; 
             text-align: left; 
             font-size: 13px; 
         }
 
         th { 
-            background: rgba(255, 255, 255, 0.02);
-            color: var(--text-muted);
-            font-weight: 600;
+            background-color: #f8fafc; 
+            color: #0f172a;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         tr:hover {
-            background: rgba(255, 255, 255, 0.02);
+            background-color: #f8fafc;
         }
 
         .alerta-stock { 
-            background: rgba(239, 68, 68, 0.15); 
-            color: #f87171; 
+            background-color: #fee2e2; 
+            color: #991b1b; 
             font-weight: 700; 
             padding: 5px 10px; 
             border-radius: 6px; 
             display: inline-block;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            border: 1px solid #fca5a5;
         }
 
         @media (max-width: 900px) {
@@ -346,7 +320,7 @@
 </head>
 <body>
 
-    <!-- Banner Superior Futurista -->
+    <!-- Banner Superior Elegante -->
     <header class="top-banner">
         <div class="brand-area">
             <h1 class="brand-title">COPY MASTER TECHNOLOGY</h1>
@@ -362,25 +336,28 @@
     <!-- Contenedor Principal -->
     <div class="main-container">
         
-        <!-- Tarjetas KPIs Estilo Neón -->
+        <!-- Tarjetas KPIs con acentos CMYK -->
         <div class="kpi-container">
             <div class="kpi-card kpi-1">
                 <div class="kpi-info">
                     <h3>Total Ítems en Catálogo</h3>
                     <p id="kpiTotalRepuestos">0</p>
                 </div>
+                <span style="font-size: 30px;">📦</span>
             </div>
             <div class="kpi-card kpi-2">
                 <div class="kpi-info">
                     <h3>Alertas de Stock Crítico</h3>
-                    <p id="kpiStockCritico" style="color: #f43f5e;">0</p>
+                    <p id="kpiStockCritico" style="color: #e11d48;">0</p>
                 </div>
+                <span style="font-size: 30px;">⚠️</span>
             </div>
             <div class="kpi-card kpi-3">
                 <div class="kpi-info">
                     <h3>Movimientos Registrados</h3>
-                    <p id="kpiTotalMovimientos" style="color: #c084fc;">0</p>
+                    <p id="kpiTotalMovimientos" style="color: #d97706;">0</p>
                 </div>
+                <span style="font-size: 30px;">📊</span>
             </div>
         </div>
 
@@ -388,19 +365,19 @@
             
             <!-- Tarjeta 1: Carga Masiva -->
             <div class="card upload-card">
-                <h2 style="color: #34d399; border-bottom-color: rgba(16, 185, 129, 0.2);">📁 Importación Masiva de Base de Datos</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Sube tu archivo (Excel o CSV) para volcado inmediato en la nube.</p>
+                <h2 style="color: #047857; border-bottom-color: #a7f3d0;">📁 Importación Masiva de Base de Datos</h2>
+                <p style="font-size: 13px; color: #4b5563; margin-bottom: 20px;">Sube tu archivo (Excel o CSV) para volcado inmediato en el sistema.</p>
                 <form id="formUploadRepuestos">
                     <div class="form-group">
                         <input type="file" id="archivoRepuestos" accept=".csv, .xlsx, .xls" required>
                     </div>
-                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">Procesar e Importar Datos</button>
+                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">Procesar e Importar Datos</button>
                 </form>
             </div>
 
             <!-- Tarjeta 2: Registro Individual -->
-            <div class="card">
-                <h2>➕ Registrar Nuevo Repuesto</h2>
+            <div class="card form-card">
+                <h2 style="color: #0284c7;">➕ Registrar Nuevo Repuesto</h2>
                 <form id="formRepuesto">
                     <div class="form-group">
                         <label>Código Interno:</label>
@@ -414,8 +391,8 @@
                         <div class="form-group" style="flex:1;">
                             <label>Estado:</label>
                             <select id="repEstado">
-                                <option value="Nuevo" style="background: #0f172a;">Nuevo</option>
-                                <option value="Usado" style="background: #0f172a;">Usado</option>
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="Usado">Usado</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex:1;">
@@ -423,26 +400,26 @@
                             <input type="number" id="repMinimo" value="2" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn-action">Guardar en Base de Datos</button>
+                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">Guardar en Base de Datos</button>
                 </form>
             </div>
 
             <!-- Tarjeta 3: Movimientos -->
-            <div class="card full-width">
-                <h2 style="color: #c084fc; border-bottom-color: rgba(168, 85, 247, 0.2);">🔄 Registro de Movimientos (Entrada / Salida)</h2>
+            <div class="card full-width movement-card">
+                <h2 style="color: #db2777;">🔄 Registro de Movimientos (Entrada / Salida)</h2>
                 <form id="formMovimiento">
                     <div style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
                             <label>Tipo de Movimiento:</label>
                             <select id="movTipo" onchange="cambiarTipoMovimiento()" required>
-                                <option value="ENTRADA" style="background: #0f172a;">ENTRADA (Compra / Proveedor)</option>
-                                <option value="SALIDA" style="background: #0f172a;">SALIDA (Técnico / Cliente)</option>
+                                <option value="ENTRADA">ENTRADA (Compra / Proveedor)</option>
+                                <option value="SALIDA">SALIDA (Técnico / Cliente)</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 2;">
                             <label>Seleccionar Repuesto:</label>
                             <select id="movRepuesto" required>
-                                <option value="" style="background: #0f172a;">Cargando repuestos...</option>
+                                <option value="">Cargando repuestos...</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 1;">
@@ -463,14 +440,14 @@
                         <div class="form-group" style="flex: 1;"><label>Cliente / Serial:</label><input type="text" id="movCliente" placeholder="Cliente / Serial"></div>
                     </div>
 
-                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #8b5cf6 100%, #6d28d9 0%); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); margin-top: 10px;">Registrar en Tiempo Real</button>
+                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #db2777 0%, #be185d 100%); margin-top: 10px;">Registrar en Tiempo Real</button>
                 </form>
             </div>
 
             <!-- Tarjeta 4: Inventario Actual -->
-            <div class="card full-width">
-                <h2>
-                    <span style="color: #38bdf8;">📦 Catálogo y Stock Actual en Inventario</span>
+            <div class="card full-width table-card">
+                <h2 style="color: #b45309;">
+                    <span>📦 Catálogo y Stock Actual en Inventario</span>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="text" id="buscadorInventario" class="search-box" placeholder="🔍 Buscar repuesto..." onkeyup="filtrarInventario()">
                         <button class="btn-export" onclick="exportarCSV()">📥 Exportar CSV</button>
@@ -495,9 +472,9 @@
             </div>
 
             <!-- Tarjeta 5: Kardex / Historial -->
-            <div class="card full-width">
-                <h2>
-                    <span style="color: #34d399;">📊 Historial de Movimientos (Kardex Gerencial)</span>
+            <div class="card full-width" style="border-top-color: #0284c7;">
+                <h2 style="color: #0369a1;">
+                    <span>📊 Historial de Movimientos (Kardex Gerencial)</span>
                     <input type="text" id="buscadorKardex" class="search-box" placeholder="🔍 Buscar en historial..." onkeyup="filtrarKardex()">
                 </h2>
                 <div style="overflow-x: auto;">
@@ -566,9 +543,9 @@
             renderizarHistorial(cacheHistorial);
 
             const select = document.getElementById('movRepuesto');
-            select.innerHTML = '<option value="" style="background: #0f172a;">Seleccione un repuesto</option>';
+            select.innerHTML = '<option value="">Seleccione un repuesto</option>';
             cacheRepuestos.forEach(r => {
-                select.innerHTML += `<option value="${r.id_repuesto}" style="background: #0f172a;">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
+                select.innerHTML += `<option value="${r.id_repuesto}">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
             });
 
         } catch (err) {
@@ -588,10 +565,10 @@
         datos.forEach(r => {
             const enAlerta = r.stock_actual <= r.stock_minimo;
             tablaRep.innerHTML += `<tr>
-                <td><b style="color: #38bdf8;">${r.codigo_interno}</b></td>
+                <td><b style="color: #0284c7;">${r.codigo_interno}</b></td>
                 <td>${r.descripcion}</td>
                 <td>${r.estado_repuesto}</td>
-                <td><span class="${enAlerta ? 'alerta-stock' : ''}" style="${!enAlerta ? 'color: #34d399; font-weight:700;' : ''}">${r.stock_actual}</span></td>
+                <td><span class="${enAlerta ? 'alerta-stock' : ''}" style="${!enAlerta ? 'color: #059669; font-weight:700;' : ''}">${r.stock_actual}</span></td>
                 <td>${r.stock_minimo}</td>
             </tr>`;
         });
@@ -613,8 +590,8 @@
             
             tablaHist.innerHTML += `<tr>
                 <td style="color: var(--text-muted);">${new Date(m.fecha_movimiento).toLocaleString()}</td>
-                <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#34d399' : '#f43f5e'}; font-weight:700;">${m.tipo_movimiento}</td>
-                <td style="color: #38bdf8;">${m.codigo_interno}</td>
+                <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#059669' : '#e11d48'}; font-weight:700;">${m.tipo_movimiento}</td>
+                <td style="color: #0284c7;">${m.codigo_interno}</td>
                 <td><b>${m.cantidad}</b></td>
                 <td>${detalle}</td>
             </tr>`;
@@ -670,7 +647,7 @@
         const r = await res.json();
         if (res.ok) {
             alert(r.mensaje);
-            document.getElementById('formUploadReportes') || document.getElementById('formUploadRepuestos').reset();
+            document.getElementById('formUploadRepuestos').reset();
             cargarDatos();
         } else {
             alert(r.error || 'Error al importar base de datos');

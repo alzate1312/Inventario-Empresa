@@ -3,6 +3,7 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const csv = require('csv-parser');
+const XLSX = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 
@@ -166,6 +167,52 @@ app.post('/api/repuestos', async (req, res) => {
   }
 });
 
+// NUEVA RUTA: Importación masiva de bases de datos (Excel o CSV) para Repuestos
+app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No se subió ningún archivo" });
+  
+  try {
+    const filePath = req.file.path;
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const resultados = XLSX.utils.sheet_to_json(sheet);
+
+    fs.unlinkSync(filePath);
+
+    if (resultados.length === 0) {
+      return res.status(400).json({ error: "El archivo está vacío o no tiene el formato correcto" });
+    }
+
+    let importados = 0;
+    for (const item of resultados) {
+      const codigo = item.codigo_interno || item.Codigo || item.CODIGO || item.codigo;
+      const descripcion = item.descripcion || item.Descripcion || item.DESCRIPCION;
+      const estado = item.estado_repuesto || item.Estado || 'Nuevo';
+      const uso = item.uso_destino || item.Uso || 'Ambos';
+      const stock = parseInt(item.stock_actual || item.Stock || item.STOCK || 0);
+      const min = parseInt(item.stock_minimo || item.Minimo || 2);
+
+      if (codigo && descripcion) {
+        await pool.query(
+          `INSERT INTO repuestos (codigo_interno, descripcion, estado_repuesto, uso_destino, stock_actual, stock_minimo) 
+           VALUES (?, ?, ?, ?, ?, ?) 
+           ON DUPLICATE KEY UPDATE 
+           descripcion = VALUES(descripcion), 
+           stock_actual = VALUES(stock_actual)`,
+          [codigo, descripcion, estado, uso, stock, min]
+        );
+        importados++;
+      }
+    }
+
+    res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron ${importados} repuestos.` });
+  } catch (err) {
+    console.error("Error al procesar archivo masivo:", err);
+    res.status(500).json({ error: "Error al procesar el archivo: " + err.message });
+  }
+});
+
 app.post('/api/almacen/movimiento', async (req, res) => {
   const { tipo_movimiento, id_repuesto, cantidad, costo_unitario, costo_total, numero_factura, proveedor, motivo_salida, entregado_a, cliente, cliente_final, serial_maquina, codigo_interno_maquina, referencia_maquina } = req.body;
   try {
@@ -182,7 +229,6 @@ app.post('/api/almacen/movimiento', async (req, res) => {
   }
 });
 
-// NUEVO: Historial completo (Kardex) para Almacén
 app.get('/api/almacen/movimientos', async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -216,7 +262,6 @@ app.post('/api/supervisor/autorizar', async (req, res) => {
   }
 });
 
-// NUEVO: Auditoría de compras autorizadas para el Supervisor
 app.get('/api/supervisor/auditoria', async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -234,52 +279,4 @@ app.get('/api/supervisor/auditoria', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor escuchando en puerto " + PORT);
-});
-const XLSX = require('xlsx'); // Importar la librería para leer Excel
-
-// RUTA PARA CARGA MASIVA DE REPUESTOS (EXCEL o CSV)
-app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No se subió ningún archivo" });
-  
-  try {
-    const filePath = req.file.path;
-    const workbook = XLSX.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const resultados = XLSX.utils.sheet_to_json(sheet); // Convierte cualquier Excel o CSV a filas de objetos JSON
-
-    fs.unlinkSync(filePath); // Borrar archivo temporal
-
-    if (resultados.length === 0) {
-      return res.status(400).json({ error: "El archivo está vacío o no tiene el formato correcto" });
-    }
-
-    let importados = 0;
-    for (const item of resultados) {
-      // Tomamos dinámicamente las propiedades sin importar cómo las hayan nombrado en el Excel
-      const codigo = item.codigo_interno || item.Codigo || item.CODIGO || item.codigo;
-      const descripcion = item.descripcion || item.Descripcion || item.DESCRIPCION;
-      const estado = item.estado_repuesto || item.Estado || 'Nuevo';
-      const uso = item.uso_destino || item.Uso || 'Ambos';
-      const stock = parseInt(item.stock_actual || item.Stock || item.STOCK || 0);
-      const min = parseInt(item.stock_minimo || item.Minimo || 2);
-
-      if (codigo && descripcion) {
-        await pool.query(
-          `INSERT INTO repuestos (codigo_interno, descripcion, estado_repuesto, uso_destino, stock_actual, stock_minimo) 
-           VALUES (?, ?, ?, ?, ?, ?) 
-           ON DUPLICATE KEY UPDATE 
-           descripcion = VALUES(descripcion), 
-           stock_actual = VALUES(stock_actual)`,
-          [codigo, descripcion, estado, uso, stock, min]
-        );
-        importados++;
-      }
-    }
-
-    res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron ${importados} repuestos.` });
-  } catch (err) {
-    console.error("Error al procesar archivo masivo:", err);
-    res.status(500).json({ error: "Error al procesar el archivo: " + err.message });
-  }
 });

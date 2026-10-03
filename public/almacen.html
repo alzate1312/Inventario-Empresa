@@ -3,35 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copy Master Technology - Módulo de Almacén</title>
+    <title>Copy Master Technology - Core Dashboard</title>
     <style>
         :root {
-            --primary-blue: #0b2545;
-            --accent-blue: #0056b3;
-            --bg-color: #eef2f7;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --border-color: #cbd5e1;
+            --bg-deep: #050b14;
+            --bg-panel: rgba(15, 23, 42, 0.75);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg-color); 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            background: var(--bg-deep);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 172, 254, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
             margin: 0; 
             padding: 0; 
             color: var(--text-main); 
         }
 
-        /* Banner superior de extremo a extremo */
+        /* Banner Superior Estilo Futurista / Ejecutivo */
         .top-banner {
-            background: linear-gradient(135deg, #0b2545 0%, #134074 100%);
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
             width: 100%;
-            padding: 22px 40px;
+            padding: 24px 40px;
             box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .brand-area {
@@ -40,29 +51,30 @@
         }
 
         .brand-title {
-            color: #ffffff;
-            font-size: 26px;
-            font-weight: bold;
-            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
             margin: 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .brand-subtitle {
-            color: #38bdf8;
-            font-size: 13px;
+            color: var(--accent-cyan);
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             margin-top: 4px;
-            font-weight: 600;
+            font-weight: 700;
         }
 
-        /* Franja CMYK real a todo el ancho de la pantalla */
+        /* Franja CMYK de Neón Luminoso */
         .cmyk-bar {
-            height: 6px;
+            height: 4px;
             width: 100%;
-            background: linear-gradient(90deg, #00b4d8 25%, #ff007f 25% 50%, #ffd166 50% 75%, #212529 75%);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: linear-gradient(90deg, #00f2fe 0%, #ff007f 33%, #ffd166 66%, #10b981 100%);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
         }
 
         .user-panel {
@@ -72,232 +84,254 @@
         }
 
         .user-panel span {
-            color: #e2e8f0;
+            color: var(--text-muted);
             font-weight: 500;
-            background: rgba(255,255,255,0.1);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
         }
 
         .btn-salir { 
-            background: #ef4444; 
-            color: white; 
-            border: none; 
-            padding: 8px 16px; 
-            border-radius: 6px; 
+            background: rgba(239, 68, 68, 0.15); 
+            color: #f87171; 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+            padding: 8px 18px; 
+            border-radius: 8px; 
             cursor: pointer; 
-            font-weight: bold;
-            transition: background 0.2s;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
         .btn-salir:hover { 
-            background: #dc2626; 
+            background: #ef4444; 
+            color: white; 
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
         }
 
-        /* Contenedor principal con diseño en cuadrícula (Grid) */
+        /* Contenedor Principal Grid */
         .main-container {
-            max-width: 1300px;
-            margin: 30px auto;
-            padding: 0 20px;
+            max-width: 1350px;
+            margin: 35px auto;
+            padding: 0 25px;
         }
 
-        /* TARJETAS DE MÉTRICAS (KPIs NUEVOS) */
+        /* KPIs Estilo Tarjetas Flotantes con Neón */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 25px;
+            gap: 25px;
+            margin-bottom: 30px;
         }
 
         .kpi-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(11, 37, 69, 0.06);
-            border-left: 5px solid var(--accent-blue);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            padding: 24px;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
         }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .kpi-1::before { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+        .kpi-2::before { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+        .kpi-3::before { background: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple); }
 
         .kpi-info h3 {
             margin: 0;
-            font-size: 14px;
-            color: #64748b;
+            font-size: 12px;
+            color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .kpi-info p {
-            margin: 5px 0 0 0;
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary-blue);
+            margin: 8px 0 0 0;
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
         }
 
+        /* Cuadrícula de Contenido */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 25px;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
 
         .full-width {
             grid-column: span 2;
         }
 
-        /* Tarjetas con personalidad y color corporativo */
+        /* Tarjetas Estilo Glassmorphism */
         .card { 
-            background: var(--card-bg); 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 6px 18px rgba(11, 37, 69, 0.08); 
-            border: 1px solid var(--border-color);
-            border-left: 6px solid var(--accent-blue);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: var(--bg-panel); 
+            backdrop-filter: blur(16px);
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
+            border: 1px solid var(--border-glass);
+            transition: all 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(11, 37, 69, 0.12);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .upload-card {
-            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-            border-left: 6px solid #16a34a;
-            border-color: #bbf7d0;
-        }
-
-        .form-card {
-            border-left: 6px solid #0b2545;
-        }
-
-        .movement-card {
-            border-left: 6px solid #8b5cf6;
-        }
-
-        .table-card {
-            border-left: 6px solid #f59e0b;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         h2 { 
-            color: var(--primary-blue); 
-            font-size: 18px;
+            color: #ffffff; 
+            font-size: 17px;
             margin-top: 0;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+            letter-spacing: 0.5px;
         }
 
         .search-box {
-            padding: 6px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            padding: 8px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
             font-size: 13px;
-            width: 250px;
-            background: #f8fafc;
+            width: 240px;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-cyan);
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
         }
 
         .form-group { 
-            margin-bottom: 15px; 
+            margin-bottom: 18px; 
         }
 
         label { 
             display: block; 
-            margin-bottom: 6px; 
-            font-weight: 600; 
+            margin-bottom: 7px; 
+            font-weight: 500; 
             font-size: 13px;
-            color: #334155;
+            color: var(--text-muted);
         }
 
         input, select, textarea { 
             width: 100%; 
-            padding: 10px; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 6px; 
+            padding: 12px; 
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid var(--border-glass); 
+            border-radius: 8px; 
             box-sizing: border-box; 
-            background-color: #f8fafc;
+            color: #ffffff;
             font-size: 14px;
-            color: #0f172a;
+            transition: all 0.2s;
         }
 
         input:focus, select:focus, textarea:focus {
-            border-color: var(--accent-blue);
+            border-color: var(--accent-cyan);
             outline: none;
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(0,86,179,0.15);
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
         }
 
         button.btn-action { 
-            background: var(--accent-blue); 
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%); 
             color: white; 
             border: none; 
-            padding: 11px 20px; 
-            border-radius: 6px; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
             cursor: pointer; 
             font-size: 14px; 
-            font-weight: bold;
+            font-weight: 600;
             width: 100%;
-            transition: background 0.2s, transform 0.1s;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
         }
         button.btn-action:hover { 
-            background: #003d82; 
-        }
-        button.btn-action:active {
-            transform: scale(0.99);
+            opacity: 0.95;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+            transform: translateY(-1px);
         }
 
         .btn-export {
-            background: #059669;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 7px 14px;
+            border-radius: 8px;
             font-size: 13px;
             cursor: pointer;
             font-weight: 600;
+            transition: all 0.2s;
         }
         .btn-export:hover {
-            background: #047857;
+            background: #10b981;
+            color: white;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
         }
 
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            margin-top: 10px; 
+            margin-top: 15px; 
         }
 
         th, td { 
-            border: 1px solid #e2e8f0; 
-            padding: 12px; 
+            border-bottom: 1px solid var(--border-glass); 
+            padding: 14px; 
             text-align: left; 
-            font-size: 14px; 
+            font-size: 13px; 
         }
 
         th { 
-            background-color: #f1f5f9; 
-            color: #0f172a;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
             font-weight: 600;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8fafc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         tr:hover {
-            background-color: #f1f5f9;
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .alerta-stock { 
-            background-color: #fee2e2; 
-            color: #991b1b; 
-            font-weight: bold; 
-            padding: 4px 8px; 
-            border-radius: 4px; 
+            background: rgba(239, 68, 68, 0.15); 
+            color: #f87171; 
+            font-weight: 700; 
+            padding: 5px 10px; 
+            border-radius: 6px; 
             display: inline-block;
-            border: 1px solid #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         @media (max-width: 900px) {
@@ -312,63 +346,60 @@
 </head>
 <body>
 
-    <!-- Banner Superior a Pantalla Completa -->
+    <!-- Banner Superior Futurista -->
     <header class="top-banner">
         <div class="brand-area">
             <h1 class="brand-title">COPY MASTER TECHNOLOGY</h1>
-            <span class="brand-subtitle">Módulo de Almacén e Inventarios</span>
+            <span class="brand-subtitle">Enterprise Core Intelligence</span>
         </div>
         <div class="user-panel">
-            <span id="nombreUsuario">Cargando...</span>
+            <span id="nombreUsuario">Conectando...</span>
             <button class="btn-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
     </header>
     <div class="cmyk-bar"></div>
 
-    <!-- Contenedor Organizado en Cuadrícula (Grid) -->
+    <!-- Contenedor Principal -->
     <div class="main-container">
         
-        <!-- NUEVO: TARJETAS DE MÉTRICAS (KPIs) -->
+        <!-- Tarjetas KPIs Estilo Neón -->
         <div class="kpi-container">
-            <div class="kpi-card" style="border-left-color: #0056b3;">
+            <div class="kpi-card kpi-1">
                 <div class="kpi-info">
                     <h3>Total Ítems en Catálogo</h3>
                     <p id="kpiTotalRepuestos">0</p>
                 </div>
-                <span style="font-size: 28px;">📦</span>
             </div>
-            <div class="kpi-card" style="border-left-color: #ef4444;">
+            <div class="kpi-card kpi-2">
                 <div class="kpi-info">
                     <h3>Alertas de Stock Crítico</h3>
-                    <p id="kpiStockCritico" style="color: #ef4444;">0</p>
+                    <p id="kpiStockCritico" style="color: #f43f5e;">0</p>
                 </div>
-                <span style="font-size: 28px;">⚠️</span>
             </div>
-            <div class="kpi-card" style="border-left-color: #8b5cf6;">
+            <div class="kpi-card kpi-3">
                 <div class="kpi-info">
                     <h3>Movimientos Registrados</h3>
-                    <p id="kpiTotalMovimientos" style="color: #8b5cf6;">0</p>
+                    <p id="kpiTotalMovimientos" style="color: #c084fc;">0</p>
                 </div>
-                <span style="font-size: 28px;">📈</span>
             </div>
         </div>
 
         <div class="dashboard-grid">
             
-            <!-- TARJETA 1: CARGA MASIVA -->
+            <!-- Tarjeta 1: Carga Masiva -->
             <div class="card upload-card">
-                <h2 style="color: #166534; border-bottom-color: #bbf7d0;">📁 Importación Masiva de Base de Datos</h2>
-                <p style="font-size: 13px; color: #475569; margin-bottom: 15px;">Sube tu archivo (Excel o CSV) con columnas de inventario para volcado inmediato.</p>
+                <h2 style="color: #34d399; border-bottom-color: rgba(16, 185, 129, 0.2);">📁 Importación Masiva de Base de Datos</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Sube tu archivo (Excel o CSV) para volcado inmediato en la nube.</p>
                 <form id="formUploadRepuestos">
                     <div class="form-group">
                         <input type="file" id="archivoRepuestos" accept=".csv, .xlsx, .xls" required>
                     </div>
-                    <button type="submit" class="btn-action" style="background: #16a34a;">Procesar e Importar Base de Datos</button>
+                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">Procesar e Importar Datos</button>
                 </form>
             </div>
 
-            <!-- TARJETA 2: REGISTRO INDIVIDUAL -->
-            <div class="card form-card">
+            <!-- Tarjeta 2: Registro Individual -->
+            <div class="card">
                 <h2>➕ Registrar Nuevo Repuesto</h2>
                 <form id="formRepuesto">
                     <div class="form-group">
@@ -379,12 +410,12 @@
                         <label>Descripción:</label>
                         <input type="text" id="repDesc" required placeholder="Detalle del repuesto...">
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 12px;">
                         <div class="form-group" style="flex:1;">
                             <label>Estado:</label>
                             <select id="repEstado">
-                                <option value="Nuevo">Nuevo</option>
-                                <option value="Usado">Usado</option>
+                                <option value="Nuevo" style="background: #0f172a;">Nuevo</option>
+                                <option value="Usado" style="background: #0f172a;">Usado</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex:1;">
@@ -392,26 +423,26 @@
                             <input type="number" id="repMinimo" value="2" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn-action" style="background: #0b2545;">Guardar Repuesto</button>
+                    <button type="submit" class="btn-action">Guardar en Base de Datos</button>
                 </form>
             </div>
 
-            <!-- TARJETA 3: REGISTRO DE MOVIMIENTOS (ANCHO COMPLETO) -->
-            <div class="card full-width movement-card">
-                <h2 style="color: #6d28d9; border-bottom-color: #ede9fe;">🔄 Registrar Movimiento (Entrada / Salida de Almacén)</h2>
+            <!-- Tarjeta 3: Movimientos -->
+            <div class="card full-width">
+                <h2 style="color: #c084fc; border-bottom-color: rgba(168, 85, 247, 0.2);">🔄 Registro de Movimientos (Entrada / Salida)</h2>
                 <form id="formMovimiento">
                     <div style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
                             <label>Tipo de Movimiento:</label>
                             <select id="movTipo" onchange="cambiarTipoMovimiento()" required>
-                                <option value="ENTRADA">ENTRADA (Compra / Proveedor)</option>
-                                <option value="SALIDA">SALIDA (Técnico / Cliente)</option>
+                                <option value="ENTRADA" style="background: #0f172a;">ENTRADA (Compra / Proveedor)</option>
+                                <option value="SALIDA" style="background: #0f172a;">SALIDA (Técnico / Cliente)</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 2;">
                             <label>Seleccionar Repuesto:</label>
                             <select id="movRepuesto" required>
-                                <option value="">Cargando repuestos...</option>
+                                <option value="" style="background: #0f172a;">Cargando repuestos...</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 1;">
@@ -432,15 +463,15 @@
                         <div class="form-group" style="flex: 1;"><label>Cliente / Serial:</label><input type="text" id="movCliente" placeholder="Cliente / Serial"></div>
                     </div>
 
-                    <button type="submit" class="btn-action" style="background: #8b5cf6; margin-top: 10px;">Registrar Movimiento en Tiempo Real</button>
+                    <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #8b5cf6 100%, #6d28d9 0%); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); margin-top: 10px;">Registrar en Tiempo Real</button>
                 </form>
             </div>
 
-            <!-- TARJETA 4: INVENTARIO ACTUAL (ANCHO COMPLETO) -->
-            <div class="card full-width table-card">
+            <!-- Tarjeta 4: Inventario Actual -->
+            <div class="card full-width">
                 <h2>
-                    <span>📦 Catálogo y Stock Actual en Inventario</span>
-                    <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="color: #38bdf8;">📦 Catálogo y Stock Actual en Inventario</span>
+                    <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="text" id="buscadorInventario" class="search-box" placeholder="🔍 Buscar repuesto..." onkeyup="filtrarInventario()">
                         <button class="btn-export" onclick="exportarCSV()">📥 Exportar CSV</button>
                     </div>
@@ -457,16 +488,16 @@
                             </tr>
                         </thead>
                         <tbody id="tablaRepuestos">
-                            <tr><td colspan="5">Cargando inventario...</td></tr>
+                            <tr><td colspan="5" style="color: var(--text-muted);">Cargando inventario...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- TARJETA 5: KARDEX / HISTORIAL (ANCHO COMPLETO) -->
-            <div class="card full-width" style="border-left-color: #0ea5e9;">
+            <!-- Tarjeta 5: Kardex / Historial -->
+            <div class="card full-width">
                 <h2>
-                    <span>📊 Historial de Movimientos (Kardex Gerencial)</span>
+                    <span style="color: #34d399;">📊 Historial de Movimientos (Kardex Gerencial)</span>
                     <input type="text" id="buscadorKardex" class="search-box" placeholder="🔍 Buscar en historial..." onkeyup="filtrarKardex()">
                 </h2>
                 <div style="overflow-x: auto;">
@@ -481,7 +512,7 @@
                             </tr>
                         </thead>
                         <tbody id="tablaHistorial">
-                            <tr><td colspan="5">Cargando historial...</td></tr>
+                            <tr><td colspan="5" style="color: var(--text-muted);">Cargando historial...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -526,7 +557,6 @@
             const resHist = await fetch('/api/almacen/movimientos');
             cacheHistorial = await resHist.json();
 
-            // Actualizar KPIs
             document.getElementById('kpiTotalRepuestos').innerText = cacheRepuestos.length;
             const criticos = cacheRepuestos.filter(r => r.stock_actual <= r.stock_minimo).length;
             document.getElementById('kpiStockCritico').innerText = criticos;
@@ -535,11 +565,10 @@
             renderizarInventario(cacheRepuestos);
             renderizarHistorial(cacheHistorial);
 
-            // Poblar selector de movimientos
             const select = document.getElementById('movRepuesto');
-            select.innerHTML = '<option value="">Seleccione un repuesto</option>';
+            select.innerHTML = '<option value="" style="background: #0f172a;">Seleccione un repuesto</option>';
             cacheRepuestos.forEach(r => {
-                select.innerHTML += `<option value="${r.id_repuesto}">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
+                select.innerHTML += `<option value="${r.id_repuesto}" style="background: #0f172a;">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
             });
 
         } catch (err) {
@@ -552,17 +581,17 @@
         tablaRep.innerHTML = '';
 
         if(datos.length === 0) {
-            tablaRep.innerHTML = '<tr><td colspan="5">No se encontraron repuestos.</td></tr>';
+            tablaRep.innerHTML = '<tr><td colspan="5" style="color: var(--text-muted);">No se encontraron repuestos.</td></tr>';
             return;
         }
 
         datos.forEach(r => {
             const enAlerta = r.stock_actual <= r.stock_minimo;
             tablaRep.innerHTML += `<tr>
-                <td><b>${r.codigo_interno}</b></td>
+                <td><b style="color: #38bdf8;">${r.codigo_interno}</b></td>
                 <td>${r.descripcion}</td>
                 <td>${r.estado_repuesto}</td>
-                <td><span class="${enAlerta ? 'alerta-stock' : ''}">${r.stock_actual}</span></td>
+                <td><span class="${enAlerta ? 'alerta-stock' : ''}" style="${!enAlerta ? 'color: #34d399; font-weight:700;' : ''}">${r.stock_actual}</span></td>
                 <td>${r.stock_minimo}</td>
             </tr>`;
         });
@@ -573,7 +602,7 @@
         tablaHist.innerHTML = '';
 
         if(datos.length === 0) {
-            tablaHist.innerHTML = '<tr><td colspan="5">No hay movimientos registrados.</td></tr>';
+            tablaHist.innerHTML = '<tr><td colspan="5" style="color: var(--text-muted);">No hay movimientos registrados.</td></tr>';
             return;
         }
 
@@ -583,9 +612,9 @@
                 : `Técnico: ${m.entregado_a || 'N/A'} - Cliente: ${m.cliente || 'N/A'}`;
             
             tablaHist.innerHTML += `<tr>
-                <td>${new Date(m.fecha_movimiento).toLocaleString()}</td>
-                <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#16a34a' : '#dc2626'}; font-weight:bold;">${m.tipo_movimiento}</td>
-                <td>${m.codigo_interno}</td>
+                <td style="color: var(--text-muted);">${new Date(m.fecha_movimiento).toLocaleString()}</td>
+                <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#34d399' : '#f43f5e'}; font-weight:700;">${m.tipo_movimiento}</td>
+                <td style="color: #38bdf8;">${m.codigo_interno}</td>
                 <td><b>${m.cantidad}</b></td>
                 <td>${detalle}</td>
             </tr>`;
@@ -641,7 +670,7 @@
         const r = await res.json();
         if (res.ok) {
             alert(r.mensaje);
-            document.getElementById('formUploadRepuestos').reset();
+            document.getElementById('formUploadReportes') || document.getElementById('formUploadRepuestos').reset();
             cargarDatos();
         } else {
             alert(r.error || 'Error al importar base de datos');

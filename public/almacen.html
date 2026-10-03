@@ -318,3 +318,24 @@
             <button type="submit" style="background: #27ae60;">Subir y Actualizar Inventario Masivo</button>
         </form>
     </div>
+document.getElementById('formUploadRepuestos').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inputFiles = document.getElementById('archivoRepuestos').files;
+        if (inputFiles.length === 0) return alert('Selecciona un archivo primero.');
+
+        const formData = new FormData();
+        formData.append('archivo', inputFiles[0]);
+
+        const res = await fetch('/api/repuestos/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const r = await res.json();
+        if (res.ok) {
+            alert(r.mensaje);
+            document.getElementById('formUploadRepuestos').reset();
+            cargarDatos(); // Refresca la tabla y el kardex automáticamente
+        } else {
+            alert(r.error || 'Error al importar archivo');
+        }
+    });

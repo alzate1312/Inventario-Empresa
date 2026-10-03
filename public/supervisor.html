@@ -1,108 +1,168 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel del Supervisor</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 20px; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    h2, h3 { color: #1e3a8a; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-    th { background: #1e3a8a; color: white; }
-    .alert-card { background: #fee2e2; border-left: 6px solid #dc2626; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-    button.btn-autorizar { background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    button.btn-autorizar:hover { background: #15803d; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Supervisor - Inventario</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .btn-salir { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; text-decoration: none; }
+        .btn-salir:hover { background: #c82333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #f8f9fa; }
+        .section { margin-bottom: 40px; }
+        .btn-autorizar { background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .btn-autorizar:hover { background: #218838; }
+        .badge-alerta { background: #ff4d4d; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .stats-box { background: #eef2f7; padding: 15px; border-radius: 6px; margin-bottom: 20px; font-size: 16px; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-  <h2>Panel de Supervisión y Control (Vista Read-Only)</h2>
+<div class="container">
+    <div class="header">
+        <h1>Panel de Control Gerencial (Supervisor)</h1>
+        <div>
+            <span id="nombreUsuario" style="margin-right: 15px; font-weight: bold;"></span>
+            <button class="btn-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
 
-  <div class="card">
-    <h3 style="color: #dc2626;">Alertas de Reabastecimiento de Repuestos</h3>
-    <div id="contenedorAlertas">Cargando alertas...</div>
-  </div>
+    <div class="stats-box" id="cajaMetricas">
+        Cargando indicadores del sistema...
+    </div>
 
-  <div class="card">
-    <h3>Catálogo de Equipos</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Código Interno</th>
-          <th>Serie</th>
-          <th>Marca</th>
-          <th>Modelo</th>
-          <th>Ubicación</th>
-          <th>Contador Actual</th>
-        </tr>
-      </thead>
-      <tbody id="tablaEquipos"></tbody>
-    </table>
-  </div>
+    <!-- SECCIÓN: ALERTAS DE STOCK BAJO -->
+    <div class="section">
+        <h2>Alertas de Repuestos Críticos (Stock Bajo)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th>Stock Actual</th>
+                    <th>Stock Mínimo</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="tablaAlertas">
+                <tr><td colspan="5">Cargando alertas...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
-  <script>
-    async function cargarAlertas() {
-      const res = await fetch('/api/supervisor/alertas');
-      const alertas = await res.json();
-      const contenedor = document.getElementById('contenedorAlertas');
+    <!-- SECCIÓN: AUDITORÍA DE COMPRAS AUTORIZADAS -->
+    <div class="section">
+        <h2>Bitácora de Auditoría y Solicitudes Autorizadas</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Repuesto</th>
+                    <th>Estado</th>
+                    <th>Autorizado Por</th>
+                    <th>Fecha Autorización</th>
+                </tr>
+            </thead>
+            <tbody id="tablaAuditoria">
+                <tr><td colspan="4">Cargando auditoría...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-      if (alertas.length === 0) {
-        contenedor.innerHTML = '<p style="color: green; font-weight: bold;">Todos los repuestos tienen stock suficiente.</p>';
-        return;
-      }
+<script>
+    const rol = localStorage.getItem('rol');
+    const nombre = localStorage.getItem('nombre');
+    if (!rol || (rol !== 'supervisor' && rol !== 'admin')) {
+        alert('Acceso no autorizado');
+        window.location.href = 'index.html';
+    }
+    document.getElementById('nombreUsuario').innerText = 'Usuario: ' + (nombre || rol);
 
-      contenedor.innerHTML = '';
-      alertas.forEach(a => {
-        contenedor.innerHTML += `
-          <div class="alert-card">
-            <strong>¡STOCK CRÍTICO!</strong> El repuesto <b>${a.codigo_interno}</b> (${a.descripcion}) tiene solo <b>${a.stock_actual}</b> unidades (Mínimo: ${a.stock_minimo}).
-            <br><br>
-            Estado: <b>${a.estado_solicitud}</b> 
-            ${a.estado_solicitud === 'PENDIENTE' ? <button class="btn-autorizar" onclick="autorizarCompra(${a.id_repuesto})">Autorizar Compra de Repuesto</button> : '<span style="color:green; font-weight:bold;"> - Compra Aprobada</span>'}
-          </div>
-        `;
-      });
+    function cerrarSesion() {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
+
+    async function cargarSupervisor() {
+        try {
+            // Cargar Alertas
+            const resAlertas = await fetch('/api/supervisor/alertas');
+            const dataAlertas = await resAlertas.json();
+            const tablaAlertas = document.getElementById('tablaAlertas');
+            tablaAlertas.innerHTML = '';
+
+            let totalAlertas = dataAlertas.length;
+            document.getElementById('cajaMetricas').innerHTML = `📊 Repuestos en nivel crítico requiriendo atención: <span style="color: red;">${totalAlertas}</span>`;
+
+            if (totalAlertas === 0) {
+                tablaAlertas.innerHTML = '<tr><td colspan="5">Excelente: No hay repuestos con stock crítico.</td></tr>';
+            } else {
+                dataAlertas.forEach(r => {
+                    const btnAccion = r.estado_solicitud === 'PENDIENTE' 
+                        ? `<button class="btn-autorizar" onclick="autorizarCompra(${r.id_repuesto})">Autorizar Compra</button>`
+                        : `<span style="color: green; font-weight: bold;">AUTORIZADO</span>`;
+
+                    tablaAlertas.innerHTML += `<tr>
+                        <td>${r.codigo_interno}</td>
+                        <td>${r.descripcion}</td>
+                        <td><span class="badge-alerta">${r.stock_actual}</span></td>
+                        <td>${r.stock_minimo}</td>
+                        <td>${btnAccion}</td>
+                    </tr>`;
+                });
+            }
+
+            // Cargar Auditoría
+            const resAud = await fetch('/api/supervisor/auditoria');
+            const dataAud = await resAud.json();
+            const tablaAud = document.getElementById('tablaAuditoria');
+            tablaAud.innerHTML = '';
+
+            if (dataAud.length === 0) {
+                tablaAud.innerHTML = '<tr><td colspan="4">No hay solicitudes registradas en la bitácora.</td></tr>';
+            } else {
+                dataAud.forEach(s => {
+                    tablaAud.innerHTML += `<tr>
+                        <td><b>${s.codigo_interno}</b> - ${s.descripcion}</td>
+                        <td style="color: blue; font-weight: bold;">${s.estado}</td>
+                        <td>${s.autorizado_por || 'Sistema'}</td>
+                        <td>${s.fecha_autorizacion ? new Date(s.fecha_autorizacion).toLocaleString() : 'Pendiente'}</td>
+                    </tr>`;
+                });
+            }
+
+        } catch (err) {
+            console.error('Error cargando panel de supervisor:', err);
+        }
     }
 
     async function autorizarCompra(id_repuesto) {
-      const nombre = localStorage.getItem('nombre') || 'Supervisor';
-      const res = await fetch('/api/supervisor/autorizar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_repuesto, autorizado_por: nombre })
-      });
-
-      const data = await res.json();
-      alert(data.mensaje);
-      cargarAlertas();
+        if (!confirm('¿Confirma que desea autorizar la compra de reposición para este repuesto?')) return;
+        
+        const res = await fetch('/api/supervisor/autorizar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                id_repuesto: id_repuesto, 
+                autorizado_por: nombre || 'Supervisor' 
+            })
+        });
+        const r = await res.json();
+        if (res.ok) {
+            alert(r.mensaje || 'Autorizado correctamente');
+            cargarSupervisor();
+        } else {
+            alert(r.error || 'Error al autorizar');
+        }
     }
 
-    async function cargarEquipos() {
-      const res = await fetch('/api/equipos');
-      const equipos = await res.json();
-      const tbody = document.getElementById('tablaEquipos');
+    cargarSupervisor();
+</script>
 
-      tbody.innerHTML = '';
-      equipos.forEach(e => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${e.id_equipo}</td>
-            <td>${e.codigo_interno}</td>
-            <td>${e.numero_serie}</td>
-            <td>${e.marca}</td>
-            <td>${e.modelo}</td>
-            <td>${e.ubicacion_cliente}</td>
-            <td>${e.contador_actual}</td>
-          </tr>
-        `;
-      });
-    }
-
-    cargarAlertas();
-    cargarEquipos();
-  </script>
 </body>
 </html>

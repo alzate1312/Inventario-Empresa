@@ -40,22 +40,20 @@ async function initDB() {
       );
     `);
 
-    // Crear usuarios predeterminados si no existen
-    const [userRows] = await pool.query('SELECT * FROM usuarios WHERE usuario = "admin"');
-    if (userRows.length === 0) {
-      const passAdmin = await bcrypt.hash('admin123', 10);
-      const passTecnico = await bcrypt.hash('tecnico123', 10);
-      const passSupervisor = await bcrypt.hash('supervisor123', 10);
-      const passAlmacen = await bcrypt.hash('almacen123', 10);
+    // Insertar/actualizar usuarios garantizando los 4 roles
+    const passAdmin = await bcrypt.hash('admin123', 10);
+    const passTecnico = await bcrypt.hash('tecnico123', 10);
+    const passSupervisor = await bcrypt.hash('supervisor123', 10);
+    const passAlmacen = await bcrypt.hash('almacen123', 10);
 
-      await pool.query(`
-        INSERT INTO usuarios (usuario, password, rol, nombre) VALUES
-        ('admin', ?, 'admin', 'Administrador Principal'),
-        ('tecnico', ?, 'tecnico', 'Técnico de Campo'),
-        ('supervisor', ?, 'supervisor', 'Supervisor General'),
-        ('almacen', ?, 'almacen', 'Encargado de Almacén');
-      `, [passAdmin, passTecnico, passSupervisor, passAlmacen]);
-    }
+    await pool.query(`
+      INSERT INTO usuarios (usuario, password, rol, nombre) VALUES
+      ('admin', ?, 'admin', 'Administrador Principal'),
+      ('tecnico', ?, 'tecnico', 'Técnico de Campo'),
+      ('supervisor', ?, 'supervisor', 'Supervisor General'),
+      ('almacen', ?, 'almacen', 'Encargado de Almacén')
+      ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);
+    `, [passAdmin, passTecnico, passSupervisor, passAlmacen]);
 
     // 2. Tabla Equipos
     await pool.query(`

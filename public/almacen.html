@@ -6,7 +6,7 @@
     <title>Módulo de Almacén - Inventario</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         h1, h2 { color: #0056b3; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
         .btn-salir { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; text-decoration: none; }
@@ -16,17 +16,18 @@
         input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background: #0056b3; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
         th { background-color: #f8f9fa; }
         .section { margin-bottom: 40px; }
+        .alerta-stock { background-color: #ffcccc; color: #990000; font-weight: bold; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Gestión de Almacén</h1>
+        <h1>Gestión de Almacén e Inventario</h1>
         <div>
             <span id="nombreUsuario" style="margin-right: 15px; font-weight: bold;"></span>
             <button class="btn-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
@@ -68,9 +69,9 @@
         </form>
     </div>
 
-    <!-- SECCIÓN: REGISTRAR MOVIMIENTO (ENTRADA / SALIDA) -->
+    <!-- SECCIÓN: REGISTRAR MOVIMIENTO -->
     <div class="section">
-        <h2>Movimientos de Almacén (Entradas / Salidas)</h2>
+        <h2>Registrar Movimiento (Entrada / Salida)</h2>
         <form id="formMovimiento">
             <div class="form-group">
                 <label>Tipo de Movimiento:</label>
@@ -90,7 +91,6 @@
                 <input type="number" id="movCantidad" min="1" value="1" required>
             </div>
 
-            <!-- Campos exclusivos de Entrada -->
             <div id="camposEntrada">
                 <div class="form-group">
                     <label>Número de Factura:</label>
@@ -106,14 +106,13 @@
                 </div>
             </div>
 
-            <!-- Campos exclusivos de Salida -->
             <div id="camposSalida" style="display:none;">
                 <div class="form-group">
                     <label>Motivo de Salida:</label>
-                    <input type="text" id="movMotivo" placeholder="Ej: Garantía, Venta, Mantenimiento">
+                    <input type="text" id="movMotivo" placeholder="Ej: Mantenimiento correctivo">
                 </div>
                 <div class="form-group">
-                    <label>Entregado a (Técnico / Persona):</label>
+                    <label>Entregado a (Técnico):</label>
                     <input type="text" id="movEntregado" placeholder="Nombre del técnico">
                 </div>
                 <div class="form-group">
@@ -121,7 +120,7 @@
                     <input type="text" id="movCliente" placeholder="Empresa cliente">
                 </div>
                 <div class="form-group">
-                    <label>Serial de Máquina Asociada:</label>
+                    <label>Serial de Máquina:</label>
                     <input type="text" id="movSerial" placeholder="Serial de la impresora">
                 </div>
             </div>
@@ -148,10 +147,28 @@
             </tbody>
         </table>
     </div>
+
+    <!-- SECCIÓN: HISTORIAL DE MOVIMIENTOS (KARDEX) -->
+    <div class="section">
+        <h2>Historial de Movimientos (Kardex)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Repuesto</th>
+                    <th>Cant</th>
+                    <th>Detalles / Destino</th>
+                </tr>
+            </thead>
+            <tbody id="tablaHistorial">
+                <tr><td colspan="5">Cargando historial...</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    // Validar sesión activa
     const rol = localStorage.getItem('rol');
     const nombre = localStorage.getItem('nombre');
     if (!rol || (rol !== 'almacen' && rol !== 'admin')) {
@@ -176,31 +193,55 @@
         }
     }
 
-    async function cargarRepuestos() {
+    async function cargarDatos() {
         try {
-            const res = await fetch('/api/repuestos');
-            const data = await res.json();
+            // Cargar Repuestos
+            const resRep = await fetch('/api/repuestos');
+            const dataRep = await resRep.json();
             const select = document.getElementById('movRepuesto');
-            const tabla = document.getElementById('tablaRepuestos');
+            const tablaRep = document.getElementById('tablaRepuestos');
             
             select.innerHTML = '<option value="">Seleccione un repuesto</option>';
-            tabla.innerHTML = '';
+            tablaRep.innerHTML = '';
 
-            data.forEach(r => {
-                // Llenar select
+            dataRep.forEach(r => {
                 select.innerHTML += `<option value="${r.id_repuesto}">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
                 
-                // Llenar tabla
-                tabla.innerHTML += `<tr>
+                const enAlerta = r.stock_actual <= r.stock_minimo;
+                tablaRep.innerHTML += `<tr>
                     <td>${r.codigo_interno}</td>
                     <td>${r.descripcion}</td>
                     <td>${r.estado_repuesto}</td>
-                    <td style="font-weight:bold; color: ${r.stock_actual <= r.stock_minimo ? 'red' : 'green'}">${r.stock_actual}</td>
+                    <td><span class="${enAlerta ? 'alerta-stock' : ''}">${r.stock_actual}</span></td>
                     <td>${r.stock_minimo}</td>
                 </tr>`;
             });
+
+            // Cargar Historial (Kardex)
+            const resHist = await fetch('/api/almacen/movimientos');
+            const dataHist = await resHist.json();
+            const tablaHist = document.getElementById('tablaHistorial');
+            tablaHist.innerHTML = '';
+
+            if(dataHist.length === 0) {
+                tablaHist.innerHTML = '<tr><td colspan="5">No hay movimientos registrados.</td></tr>';
+            } else {
+                dataHist.forEach(m => {
+                    const detalle = m.tipo_movimiento === 'ENTRADA' 
+                        ? `Prov: ${m.proveedor || 'N/A'} (Fac: ${m.numero_factura || 'N/A'})` 
+                        : `Técnico: ${m.entregado_a || 'N/A'} - Cliente: ${m.cliente || 'N/A'}`;
+                    
+                    tablaHist.innerHTML += `<tr>
+                        <td>${new Date(m.fecha_movimiento).toLocaleString()}</td>
+                        <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? 'green' : 'red'}; font-weight:bold;">${m.tipo_movimiento}</td>
+                        <td>${m.codigo_interno}</td>
+                        <td><b>${m.cantidad}</b></td>
+                        <td>${detalle}</td>
+                    </tr>`;
+                });
+            }
         } catch (err) {
-            console.error('Error cargando repuestos:', err);
+            console.error('Error cargando datos de almacén:', err);
         }
     }
 
@@ -223,7 +264,7 @@
         if (res.ok) {
             alert(r.mensaje || 'Repuesto registrado');
             document.getElementById('formRepuesto').reset();
-            cargarRepuestos();
+            cargarDatos();
         } else {
             alert(r.error || 'Error al registrar');
         }
@@ -255,13 +296,13 @@
             alert(r.mensaje || 'Movimiento registrado');
             document.getElementById('formMovimiento').reset();
             cambiarTipoMovimiento();
-            cargarRepuestos();
+            cargarDatos();
         } else {
             alert(r.error || 'Error en el movimiento');
         }
     });
 
-    cargarRepuestos();
+    cargarDatos();
 </script>
 
 </body>

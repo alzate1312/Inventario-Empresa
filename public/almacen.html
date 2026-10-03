@@ -8,10 +8,10 @@
         :root {
             --primary-blue: #0b2545;
             --accent-blue: #0056b3;
-            --bg-color: #f4f6f9;
+            --bg-color: #eef2f7;
             --card-bg: #ffffff;
-            --text-main: #333333;
-            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --border-color: #cbd5e1;
         }
 
         body { 
@@ -24,15 +24,14 @@
 
         /* Banner superior de extremo a extremo */
         .top-banner {
-            background-color: var(--primary-blue);
+            background: linear-gradient(135deg, #0b2545 0%, #134074 100%);
             width: 100%;
-            padding: 20px 40px;
+            padding: 22px 40px;
             box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .brand-area {
@@ -46,14 +45,16 @@
             font-weight: bold;
             letter-spacing: 1px;
             margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         .brand-subtitle {
-            color: #94a3b8;
+            color: #38bdf8;
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-top: 4px;
+            font-weight: 600;
         }
 
         /* Franja CMYK real a todo el ancho de la pantalla */
@@ -61,6 +62,7 @@
             height: 6px;
             width: 100%;
             background: linear-gradient(90deg, #00b4d8 25%, #ff007f 25% 50%, #ffd166 50% 75%, #212529 75%);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .user-panel {
@@ -72,6 +74,10 @@
         .user-panel span {
             color: #e2e8f0;
             font-weight: 500;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
         }
 
         .btn-salir { 
@@ -106,18 +112,38 @@
             grid-column: span 2;
         }
 
+        /* Tarjetas con personalidad y color corporativo */
         .card { 
             background: var(--card-bg); 
             padding: 25px; 
             border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            box-shadow: 0 6px 18px rgba(11, 37, 69, 0.08); 
             border: 1px solid var(--border-color);
-            transition: transform 0.2s;
+            border-left: 6px solid var(--accent-blue);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 25px rgba(11, 37, 69, 0.12);
+        }
+
+        .upload-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+            border-left: 6px solid #16a34a;
+            border-color: #bbf7d0;
+        }
+
+        .form-card {
+            border-left: 6px solid #0b2545;
+        }
+
+        .movement-card {
+            border-left: 6px solid #8b5cf6;
+        }
+
+        .table-card {
+            border-left: 6px solid #f59e0b;
         }
 
         h2 { 
@@ -140,7 +166,7 @@
             margin-bottom: 6px; 
             font-weight: 600; 
             font-size: 13px;
-            color: #475569;
+            color: #334155;
         }
 
         input, select, textarea { 
@@ -151,29 +177,33 @@
             box-sizing: border-box; 
             background-color: #f8fafc;
             font-size: 14px;
+            color: #0f172a;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: var(--accent-blue);
             outline: none;
             background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(0,86,179,0.1);
+            box-shadow: 0 0 0 3px rgba(0,86,179,0.15);
         }
 
         button.btn-action { 
             background: var(--accent-blue); 
             color: white; 
             border: none; 
-            padding: 10px 20px; 
+            padding: 11px 20px; 
             border-radius: 6px; 
             cursor: pointer; 
             font-size: 14px; 
             font-weight: bold;
             width: 100%;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
         button.btn-action:hover { 
             background: #003d82; 
+        }
+        button.btn-action:active {
+            transform: scale(0.99);
         }
 
         table { 
@@ -183,20 +213,24 @@
         }
 
         th, td { 
-            border: 1px solid var(--border-color); 
+            border: 1px solid #e2e8f0; 
             padding: 12px; 
             text-align: left; 
             font-size: 14px; 
         }
 
         th { 
-            background-color: #f8fafc; 
-            color: #1e293b;
+            background-color: #f1f5f9; 
+            color: #0f172a;
             font-weight: 600;
         }
 
         tr:nth-child(even) {
-            background-color: #fcfcfc;
+            background-color: #f8fafc;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
         }
 
         .alerta-stock { 
@@ -206,11 +240,7 @@
             padding: 4px 8px; 
             border-radius: 4px; 
             display: inline-block;
-        }
-
-        .upload-card {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 2px dashed #4ade80;
+            border: 1px solid #fca5a5;
         }
 
         @media (max-width: 900px) {
@@ -256,7 +286,7 @@
             </div>
 
             <!-- TARJETA 2: REGISTRO INDIVIDUAL -->
-            <div class="card">
+            <div class="card form-card">
                 <h2>➕ Registrar Nuevo Repuesto</h2>
                 <form id="formRepuesto">
                     <div class="form-group">
@@ -280,13 +310,13 @@
                             <input type="number" id="repMinimo" value="2" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn-action">Guardar Repuesto</button>
+                    <button type="submit" class="btn-action" style="background: #0b2545;">Guardar Repuesto</button>
                 </form>
             </div>
 
             <!-- TARJETA 3: REGISTRO DE MOVIMIENTOS (ANCHO COMPLETO) -->
-            <div class="card full-width">
-                <h2>🔄 Registrar Movimiento (Entrada / Salida de Almacén)</h2>
+            <div class="card full-width movement-card">
+                <h2 style="color: #6d28d9; border-bottom-color: #ede9fe;">🔄 Registrar Movimiento (Entrada / Salida de Almacén)</h2>
                 <form id="formMovimiento">
                     <div style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
@@ -320,13 +350,13 @@
                         <div class="form-group" style="flex: 1;"><label>Cliente / Serial:</label><input type="text" id="movCliente" placeholder="Cliente / Serial"></div>
                     </div>
 
-                    <button type="submit" class="btn-action" style="margin-top: 10px;">Registrar Movimiento en Tiempo Real</button>
+                    <button type="submit" class="btn-action" style="background: #8b5cf6; margin-top: 10px;">Registrar Movimiento en Tiempo Real</button>
                 </form>
             </div>
 
             <!-- TARJETA 4: INVENTARIO ACTUAL (ANCHO COMPLETO) -->
-            <div class="card full-width">
-                <h2>📦 Catálogo y Stock Actual en Inventario</h2>
+            <div class="card full-width table-card">
+                <h2 style="color: #b45309; border-bottom-color: #fef3c7;">📦 Catálogo y Stock Actual en Inventario</h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -346,8 +376,8 @@
             </div>
 
             <!-- TARJETA 5: KARDEX / HISTORIAL (ANCHO COMPLETO) -->
-            <div class="card full-width">
-                <h2>📊 Historial de Movimientos (Kardex Gerencial)</h2>
+            <div class="card full-width" style="border-left-color: #0ea5e9;">
+                <h2 style="color: #0369a1; border-bottom-color: #e0f2fe;">📊 Historial de Movimientos (Kardex Gerencial)</h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -515,6 +545,7 @@
         if (res.ok) {
             alert(r.mensaje || 'Movimiento registrado');
             document.getElementById('formMovimiento').reset();
+            cambiarTipoMonivimiento = null; // reset
             cambiarTipoMovimiento();
             cargarDatos();
         } else {

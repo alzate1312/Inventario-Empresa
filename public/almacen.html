@@ -101,6 +101,39 @@
             padding: 0 20px;
         }
 
+        /* TARJETAS DE MÉTRICAS (KPIs NUEVOS) */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(11, 37, 69, 0.06);
+            border-left: 5px solid var(--accent-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-info h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .kpi-info p {
+            margin: 5px 0 0 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -154,7 +187,17 @@
             padding-bottom: 10px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 10px;
+        }
+
+        .search-box {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 250px;
+            background: #f8fafc;
         }
 
         .form-group { 
@@ -206,6 +249,20 @@
             transform: scale(0.99);
         }
 
+        .btn-export {
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-export:hover {
+            background: #047857;
+        }
+
         table { 
             width: 100%; 
             border-collapse: collapse; 
@@ -244,7 +301,7 @@
         }
 
         @media (max-width: 900px) {
-            .dashboard-grid {
+            .dashboard-grid, .kpi-container {
                 grid-template-columns: 1fr;
             }
             .full-width {
@@ -271,6 +328,31 @@
     <!-- Contenedor Organizado en Cuadrícula (Grid) -->
     <div class="main-container">
         
+        <!-- NUEVO: TARJETAS DE MÉTRICAS (KPIs) -->
+        <div class="kpi-container">
+            <div class="kpi-card" style="border-left-color: #0056b3;">
+                <div class="kpi-info">
+                    <h3>Total Ítems en Catálogo</h3>
+                    <p id="kpiTotalRepuestos">0</p>
+                </div>
+                <span style="font-size: 28px;">📦</span>
+            </div>
+            <div class="kpi-card" style="border-left-color: #ef4444;">
+                <div class="kpi-info">
+                    <h3>Alertas de Stock Crítico</h3>
+                    <p id="kpiStockCritico" style="color: #ef4444;">0</p>
+                </div>
+                <span style="font-size: 28px;">⚠️</span>
+            </div>
+            <div class="kpi-card" style="border-left-color: #8b5cf6;">
+                <div class="kpi-info">
+                    <h3>Movimientos Registrados</h3>
+                    <p id="kpiTotalMovimientos" style="color: #8b5cf6;">0</p>
+                </div>
+                <span style="font-size: 28px;">📈</span>
+            </div>
+        </div>
+
         <div class="dashboard-grid">
             
             <!-- TARJETA 1: CARGA MASIVA -->
@@ -356,7 +438,13 @@
 
             <!-- TARJETA 4: INVENTARIO ACTUAL (ANCHO COMPLETO) -->
             <div class="card full-width table-card">
-                <h2 style="color: #b45309; border-bottom-color: #fef3c7;">📦 Catálogo y Stock Actual en Inventario</h2>
+                <h2>
+                    <span>📦 Catálogo y Stock Actual en Inventario</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="buscadorInventario" class="search-box" placeholder="🔍 Buscar repuesto..." onkeyup="filtrarInventario()">
+                        <button class="btn-export" onclick="exportarCSV()">📥 Exportar CSV</button>
+                    </div>
+                </h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -377,7 +465,10 @@
 
             <!-- TARJETA 5: KARDEX / HISTORIAL (ANCHO COMPLETO) -->
             <div class="card full-width" style="border-left-color: #0ea5e9;">
-                <h2 style="color: #0369a1; border-bottom-color: #e0f2fe;">📊 Historial de Movimientos (Kardex Gerencial)</h2>
+                <h2>
+                    <span>📊 Historial de Movimientos (Kardex Gerencial)</span>
+                    <input type="text" id="buscadorKardex" class="search-box" placeholder="🔍 Buscar en historial..." onkeyup="filtrarKardex()">
+                </h2>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -424,54 +515,115 @@
         }
     }
 
+    let cacheRepuestos = [];
+    let cacheHistorial = [];
+
     async function cargarDatos() {
         try {
             const resRep = await fetch('/api/repuestos');
-            const dataRep = await resRep.json();
-            const select = document.getElementById('movRepuesto');
-            const tablaRep = document.getElementById('tablaRepuestos');
+            cacheRepuestos = await resRep.json();
             
-            select.innerHTML = '<option value="">Seleccione un repuesto</option>';
-            tablaRep.innerHTML = '';
+            const resHist = await fetch('/api/almacen/movimientos');
+            cacheHistorial = await resHist.json();
 
-            dataRep.forEach(r => {
+            // Actualizar KPIs
+            document.getElementById('kpiTotalRepuestos').innerText = cacheRepuestos.length;
+            const criticos = cacheRepuestos.filter(r => r.stock_actual <= r.stock_minimo).length;
+            document.getElementById('kpiStockCritico').innerText = criticos;
+            document.getElementById('kpiTotalMovimientos').innerText = cacheHistorial.length;
+
+            renderizarInventario(cacheRepuestos);
+            renderizarHistorial(cacheHistorial);
+
+            // Poblar selector de movimientos
+            const select = document.getElementById('movRepuesto');
+            select.innerHTML = '<option value="">Seleccione un repuesto</option>';
+            cacheRepuestos.forEach(r => {
                 select.innerHTML += `<option value="${r.id_repuesto}">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
-                
-                const enAlerta = r.stock_actual <= r.stock_minimo;
-                tablaRep.innerHTML += `<tr>
-                    <td><b>${r.codigo_interno}</b></td>
-                    <td>${r.descripcion}</td>
-                    <td>${r.estado_repuesto}</td>
-                    <td><span class="${enAlerta ? 'alerta-stock' : ''}">${r.stock_actual}</span></td>
-                    <td>${r.stock_minimo}</td>
-                </tr>`;
             });
 
-            const resHist = await fetch('/api/almacen/movimientos');
-            const dataHist = await resHist.json();
-            const tablaHist = document.getElementById('tablaHistorial');
-            tablaHist.innerHTML = '';
-
-            if(dataHist.length === 0) {
-                tablaHist.innerHTML = '<tr><td colspan="5">No hay movimientos registrados.</td></tr>';
-            } else {
-                dataHist.forEach(m => {
-                    const detalle = m.tipo_movimiento === 'ENTRADA' 
-                        ? `Prov: ${m.proveedor || 'N/A'} (Fac: ${m.numero_factura || 'N/A'})` 
-                        : `Técnico: ${m.entregado_a || 'N/A'} - Cliente: ${m.cliente || 'N/A'}`;
-                    
-                    tablaHist.innerHTML += `<tr>
-                        <td>${new Date(m.fecha_movimiento).toLocaleString()}</td>
-                        <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#16a34a' : '#dc2626'}; font-weight:bold;">${m.tipo_movimiento}</td>
-                        <td>${m.codigo_interno}</td>
-                        <td><b>${m.cantidad}</b></td>
-                        <td>${detalle}</td>
-                    </tr>`;
-                });
-            }
         } catch (err) {
             console.error('Error cargando datos de almacén:', err);
         }
+    }
+
+    function renderizarInventario(datos) {
+        const tablaRep = document.getElementById('tablaRepuestos');
+        tablaRep.innerHTML = '';
+
+        if(datos.length === 0) {
+            tablaRep.innerHTML = '<tr><td colspan="5">No se encontraron repuestos.</td></tr>';
+            return;
+        }
+
+        datos.forEach(r => {
+            const enAlerta = r.stock_actual <= r.stock_minimo;
+            tablaRep.innerHTML += `<tr>
+                <td><b>${r.codigo_interno}</b></td>
+                <td>${r.descripcion}</td>
+                <td>${r.estado_repuesto}</td>
+                <td><span class="${enAlerta ? 'alerta-stock' : ''}">${r.stock_actual}</span></td>
+                <td>${r.stock_minimo}</td>
+            </tr>`;
+        });
+    }
+
+    function renderizarHistorial(datos) {
+        const tablaHist = document.getElementById('tablaHistorial');
+        tablaHist.innerHTML = '';
+
+        if(datos.length === 0) {
+            tablaHist.innerHTML = '<tr><td colspan="5">No hay movimientos registrados.</td></tr>';
+            return;
+        }
+
+        datos.forEach(m => {
+            const detalle = m.tipo_movimiento === 'ENTRADA' 
+                ? `Prov: ${m.proveedor || 'N/A'} (Fac: ${m.numero_factura || 'N/A'})` 
+                : `Técnico: ${m.entregado_a || 'N/A'} - Cliente: ${m.cliente || 'N/A'}`;
+            
+            tablaHist.innerHTML += `<tr>
+                <td>${new Date(m.fecha_movimiento).toLocaleString()}</td>
+                <td style="color: ${m.tipo_movimiento === 'ENTRADA' ? '#16a34a' : '#dc2626'}; font-weight:bold;">${m.tipo_movimiento}</td>
+                <td>${m.codigo_interno}</td>
+                <td><b>${m.cantidad}</b></td>
+                <td>${detalle}</td>
+            </tr>`;
+        });
+    }
+
+    function filtrarInventario() {
+        const texto = document.getElementById('buscadorInventario').value.toLowerCase();
+        const filtrados = cacheRepuestos.filter(r => 
+            r.codigo_interno.toLowerCase().includes(texto) || 
+            r.descripcion.toLowerCase().includes(texto)
+        );
+        renderizarInventario(filtrados);
+    }
+
+    function filtrarKardex() {
+        const texto = document.getElementById('buscadorKardex').value.toLowerCase();
+        const filtrados = cacheHistorial.filter(m => 
+            m.codigo_interno.toLowerCase().includes(texto) || 
+            (m.proveedor && m.proveedor.toLowerCase().includes(texto)) ||
+            (m.entregado_a && m.entregado_a.toLowerCase().includes(texto)) ||
+            (m.cliente && m.cliente.toLowerCase().includes(texto))
+        );
+        renderizarHistorial(filtrados);
+    }
+
+    function exportarCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,Codigo,Descripcion,Estado,StockActual,StockMinimo\r\n";
+        cacheRepuestos.forEach(r => {
+            csvContent += `"${r.codigo_interno}","${r.descripcion}","${r.estado_repuesto}",${r.stock_actual},${r.stock_minimo}\r\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "inventario_repuestos.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     document.getElementById('formUploadRepuestos').addEventListener('submit', async (e) => {
@@ -545,7 +697,6 @@
         if (res.ok) {
             alert(r.mensaje || 'Movimiento registrado');
             document.getElementById('formMovimiento').reset();
-            cambiarTipoMonivimiento = null; // reset
             cambiarTipoMovimiento();
             cargarDatos();
         } else {

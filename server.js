@@ -27,16 +27,13 @@ async function initDB() {
   try {
     pool = mysql.createPool(dbConfig);
 
-    // Crear tabla usuarios
     await pool.query("CREATE TABLE IF NOT EXISTS usuarios (id_usuario INT AUTO_INCREMENT PRIMARY KEY, usuario VARCHAR(50) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, rol ENUM('admin', 'tecnico', 'supervisor', 'almacen') NOT NULL, nombre VARCHAR(100) NOT NULL);");
 
-    // Hashear contraseñas de forma segura
     const pAdmin = await bcrypt.hash('admin123', 10);
     const pTecnico = await bcrypt.hash('tecnico123', 10);
     const pSupervisor = await bcrypt.hash('supervisor123', 10);
     const pAlmacen = await bcrypt.hash('almacen123', 10);
 
-    // Insertar o actualizar usuarios uno por uno para evitar errores de argumentos
     const usuariosPorDefecto = [
       ['admin', pAdmin, 'admin', 'Administrador Principal'],
       ['tecnico', pTecnico, 'tecnico', 'Técnico de Campo'],
@@ -51,7 +48,6 @@ async function initDB() {
       );
     }
 
-    // Tablas del sistema
     await pool.query("CREATE TABLE IF NOT EXISTS equipos (id_equipo INT AUTO_INCREMENT PRIMARY KEY, codigo_interno VARCHAR(50) UNIQUE NOT NULL, numero_serie VARCHAR(50) UNIQUE NOT NULL, marca VARCHAR(50) NOT NULL, modelo VARCHAR(50) NOT NULL, ubicacion_cliente VARCHAR(100), contador_actual INT DEFAULT 0, fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
 
     await pool.query("CREATE TABLE IF NOT EXISTS mantenimientos (id_mantenimiento INT AUTO_INCREMENT PRIMARY KEY, id_equipo INT NOT NULL, tipo_servicio VARCHAR(50) NOT NULL, contador_impresiones INT NOT NULL, descripcion TEXT NOT NULL, repuestos_cambiados TEXT, tecnico VARCHAR(100) NOT NULL, fecha_servicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo) ON DELETE CASCADE);");
@@ -78,11 +74,18 @@ app.post('/api/login', async (req, res) => {
     if (rows.length === 0) return res.status(401).json({ error: "Usuario no encontrado" });
 
     const user = rows[0];
+    
+    if (!user.password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.query("UPDATE usuarios SET password = ? WHERE usuario = ?", [hashedPassword, usuario]);
+      user.password = hashedPassword;
+    }
+
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
 
     const token = Buffer.from(JSON.stringify({ id: user.id_usuario, rol: user.rol })).toString('base64');
-    res.json({ token, rol: user.rol, nombre: user.nombre });
+    res.json({ token, rol: user.rol, nombre: user.nombre || usuario });
   } catch (err) {
     console.error("Error en login:", err);
     res.status(500).json({ error: "Error interno de BD: " + err.message });

@@ -27,15 +27,31 @@ async function initDB() {
   try {
     pool = mysql.createPool(dbConfig);
 
+    // Crear tabla usuarios
     await pool.query("CREATE TABLE IF NOT EXISTS usuarios (id_usuario INT AUTO_INCREMENT PRIMARY KEY, usuario VARCHAR(50) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, rol ENUM('admin', 'tecnico', 'supervisor', 'almacen') NOT NULL, nombre VARCHAR(100) NOT NULL);");
 
-    const passAdmin = await bcrypt.hash('admin123', 10);
-    const passTecnico = await bcrypt.hash('tecnico123', 10);
-    const passSupervisor = await bcrypt.hash('supervisor123', 10);
-    const passAlmacen = await bcrypt.hash('almacen123', 10);
+    // Hashear contraseñas de forma segura
+    const pAdmin = await bcrypt.hash('admin123', 10);
+    const pTecnico = await bcrypt.hash('tecnico123', 10);
+    const pSupervisor = await bcrypt.hash('supervisor123', 10);
+    const pAlmacen = await bcrypt.hash('almacen123', 10);
 
-    await pool.query("INSERT INTO usuarios (usuario, password, rol, nombre) VALUES ('admin', ?, 'admin', 'Administrador Principal'), ('tecnico', ?, 'tecnico', 'Técnico de Campo'), ('supervisor', ?, 'supervisor', 'Supervisor General'), ('almacen', ?, 'almacen', 'Encargado de Almacén') ON DUPLICATE KEY UPDATE password = VALUES(password), rol = VALUES(rol);", [passAdmin, passTecnico, passSupervisor, passAlmacen]);
+    // Insertar o actualizar usuarios uno por uno para evitar errores de argumentos
+    const usuariosPorDefecto = [
+      ['admin', pAdmin, 'admin', 'Administrador Principal'],
+      ['tecnico', pTecnico, 'tecnico', 'Técnico de Campo'],
+      ['supervisor', pSupervisor, 'supervisor', 'Supervisor General'],
+      ['almacen', pAlmacen, 'almacen', 'Encargado de Almacén']
+    ];
 
+    for (const u of usuariosPorDefecto) {
+      await pool.query(
+        "INSERT INTO usuarios (usuario, password, rol, nombre) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password), rol = VALUES(rol), nombre = VALUES(nombre)",
+        u
+      );
+    }
+
+    // Tablas del sistema
     await pool.query("CREATE TABLE IF NOT EXISTS equipos (id_equipo INT AUTO_INCREMENT PRIMARY KEY, codigo_interno VARCHAR(50) UNIQUE NOT NULL, numero_serie VARCHAR(50) UNIQUE NOT NULL, marca VARCHAR(50) NOT NULL, modelo VARCHAR(50) NOT NULL, ubicacion_cliente VARCHAR(100), contador_actual INT DEFAULT 0, fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
 
     await pool.query("CREATE TABLE IF NOT EXISTS mantenimientos (id_mantenimiento INT AUTO_INCREMENT PRIMARY KEY, id_equipo INT NOT NULL, tipo_servicio VARCHAR(50) NOT NULL, contador_impresiones INT NOT NULL, descripcion TEXT NOT NULL, repuestos_cambiados TEXT, tecnico VARCHAR(100) NOT NULL, fecha_servicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo) ON DELETE CASCADE);");
@@ -46,9 +62,9 @@ async function initDB() {
 
     await pool.query("CREATE TABLE IF NOT EXISTS solicitudes_compra (id_solicitud INT AUTO_INCREMENT PRIMARY KEY, id_repuesto INT NOT NULL, estado ENUM('PENDIENTE', 'AUTORIZADO', 'COMPRADO') DEFAULT 'PENDIENTE', fecha_autorizacion DATETIME NULL, autorizado_por VARCHAR(100) NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (id_repuesto) REFERENCES repuestos(id_repuesto) ON DELETE CASCADE);");
 
-    console.log("Servidor e historia de tablas inicializadas correctamente.");
+    console.log("Base de datos inicializada correctamente.");
   } catch (err) {
-    console.error("Error DB:", err);
+    console.error("Error crítico en DB:", err);
   }
 }
 

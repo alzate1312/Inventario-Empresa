@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Técnico - Iniciar Sesión</title>
+  <title>Control de Inventario - Iniciar Sesión</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -53,43 +53,49 @@
   </style>
 </head>
 <body>
- 
+
   <div class="login-card">
-    <h2>Control Técnico</h2>
+    <h2>Control de Inventario</h2>
     <form id="formLogin">
       <input type="text" id="usuario" placeholder="Usuario" required>
       <input type="password" id="password" placeholder="Contraseña" required>
       <button type="submit">Ingresar al Sistema</button>
     </form>
   </div>
- 
+
   <script>
     document.getElementById('formLogin').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const usuario = document.getElementById('usuario').value;
       const password = document.getElementById('password').value;
- 
+
       try {
         const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ usuario, password })
         });
- 
+
         const data = await res.json();
- 
+
         if (res.ok) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('rol', data.rol);
           localStorage.setItem('nombre', data.nombre);
- 
-          alert('Bienvenido ' + (data.rol === 'admin' ? 'Administrador' : 'Técnico'));
- 
+
+          alert('Bienvenido ' + data.nombre);
+
           if (data.rol === 'admin') {
             window.location.href = '/admin.html';
           } else if (data.rol === 'tecnico') {
             window.location.href = '/tecnico.html';
+          } else if (data.rol === 'supervisor') {
+            window.location.href = '/supervisor.html';
+          } else if (data.rol === 'almacen') {
+            window.location.href = '/almacen.html';
+          } else {
+            alert('Rol no reconocido');
           }
         } else {
           alert(data.error || 'Credenciales incorrectas');

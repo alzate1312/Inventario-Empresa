@@ -27,7 +27,6 @@ async function initDB() {
   try {
     pool = mysql.createPool(dbConfig);
 
-    // Borrar y recrear la tabla usuarios limpia para evitar errores de columnas faltantes
     await pool.query("DROP TABLE IF EXISTS usuarios;");
     await pool.query("CREATE TABLE usuarios (id_usuario INT AUTO_INCREMENT PRIMARY KEY, usuario VARCHAR(50) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, rol ENUM('admin', 'tecnico', 'supervisor', 'almacen') NOT NULL, nombre VARCHAR(100) NOT NULL);");
 

@@ -202,7 +202,7 @@ app.post('/api/equipos/upload-csv', upload.single('archivo'), (req, res) => {
             marca = VALUES(marca), modelo = VALUES(modelo), ubicacion_cliente = VALUES(ubicacion_cliente), contador_actual = VALUES(contador_actual)
           `, [eq.codigo_interno, eq.numero_serie, eq.marca || 'Ricoh', eq.modelo, eq.ubicacion_cliente, eq.contador_actual || 0]);
         }
-        res.json({ mensaje: Procesados ${resultados.length} equipos con éxito. });
+        res.json({ mensaje: 'Procesados ' + resultados.length + ' equipos con éxito.' });
       } catch (err) {
         res.status(500).json({ error: 'Error al procesar el archivo CSV' });
       }

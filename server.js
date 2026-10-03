@@ -34,7 +34,7 @@ async function initDB() {
     const passSupervisor = await bcrypt.hash('supervisor123', 10);
     const passAlmacen = await bcrypt.hash('almacen123', 10);
 
-    await pool.query("INSERT INTO usuarios (usuario, password, rol, nombre) VALUES ('admin', ?, 'admin', 'Administrador Principal'), ('tecnico', ?, 'tecnico', 'Técnico de Campo'), ('supervisor', ?, 'supervisor', 'Supervisor General'), ('almacen', ?, 'almacen', 'Encargado de Almacén') ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);", [passAdmin, passTecnico, passSupervisor, passAlmacen]);
+    await pool.query("INSERT INTO usuarios (usuario, password, rol, nombre) VALUES ('admin', ?, 'admin', 'Administrador Principal'), ('tecnico', ?, 'tecnico', 'Técnico de Campo'), ('supervisor', ?, 'supervisor', 'Supervisor General'), ('almacen', ?, 'almacen', 'Encargado de Almacén') ON DUPLICATE KEY UPDATE password = VALUES(password), rol = VALUES(rol);", [passAdmin, passTecnico, passSupervisor, passAlmacen]);
 
     await pool.query("CREATE TABLE IF NOT EXISTS equipos (id_equipo INT AUTO_INCREMENT PRIMARY KEY, codigo_interno VARCHAR(50) UNIQUE NOT NULL, numero_serie VARCHAR(50) UNIQUE NOT NULL, marca VARCHAR(50) NOT NULL, modelo VARCHAR(50) NOT NULL, ubicacion_cliente VARCHAR(100), contador_actual INT DEFAULT 0, fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
 
@@ -57,6 +57,7 @@ initDB();
 app.post('/api/login', async (req, res) => {
   const { usuario, password } = req.body;
   try {
+    if (!pool) return res.status(500).json({ error: "Base de datos desconectada" });
     const [rows] = await pool.query("SELECT * FROM usuarios WHERE usuario = ?", [usuario]);
     if (rows.length === 0) return res.status(401).json({ error: "Usuario no encontrado" });
 
@@ -67,7 +68,8 @@ app.post('/api/login', async (req, res) => {
     const token = Buffer.from(JSON.stringify({ id: user.id_usuario, rol: user.rol })).toString('base64');
     res.json({ token, rol: user.rol, nombre: user.nombre });
   } catch (err) {
-    res.status(500).json({ error: "Error interno" });
+    console.error("Error en login:", err);
+    res.status(500).json({ error: "Error interno de BD: " + err.message });
   }
 });
 

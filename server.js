@@ -75,7 +75,6 @@ app.post('/api/login', async (req, res) => {
     if (rows.length === 0) return res.status(401).json({ error: "Usuario no encontrado" });
 
     const user = rows[0];
-    
     if (!user.password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       await pool.query("UPDATE usuarios SET password = ? WHERE usuario = ?", [hashedPassword, usuario]);
@@ -183,6 +182,21 @@ app.post('/api/almacen/movimiento', async (req, res) => {
   }
 });
 
+// NUEVO: Historial completo (Kardex) para Almacén
+app.get('/api/almacen/movimientos', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT m.*, r.codigo_interno, r.descripcion as repuesto_desc 
+      FROM movimientos_almacen m 
+      JOIN repuestos r ON m.id_repuesto = r.id_repuesto 
+      ORDER BY m.fecha_movimiento DESC LIMIT 50
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Error al obtener historial" });
+  }
+});
+
 app.get('/api/supervisor/alertas', async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT r.*, COALESCE(s.estado, 'PENDIENTE') AS estado_solicitud, s.id_solicitud FROM repuestos r LEFT JOIN solicitudes_compra s ON r.id_repuesto = s.id_repuesto AND s.estado != 'COMPRADO' WHERE r.stock_actual <= r.stock_minimo");
@@ -199,6 +213,21 @@ app.post('/api/supervisor/autorizar', async (req, res) => {
     res.json({ mensaje: "Compra autorizada con exito" });
   } catch (err) {
     res.status(500).json({ error: "Error al autorizar compra" });
+  }
+});
+
+// NUEVO: Auditoría de compras autorizadas para el Supervisor
+app.get('/api/supervisor/auditoria', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT s.*, r.codigo_interno, r.descripcion, r.stock_actual, r.stock_minimo 
+      FROM solicitudes_compra s 
+      JOIN repuestos r ON s.id_repuesto = r.id_repuesto 
+      ORDER BY s.created_at DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Error al obtener auditoría" });
   }
 });
 

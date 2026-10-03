@@ -6,11 +6,11 @@
     <title>Copy Master Technology - Core Dashboard</title>
     <style>
         :root {
-            --primary-dark: #070913;
-            --panel-glass: rgba(11, 15, 28, 0.82);
+            --primary-dark: #0a1128;
+            --panel-glass: rgba(15, 23, 42, 0.85);
             --border-glass: rgba(255, 255, 255, 0.12);
-            --accent-purple: #a855f7;
             --accent-cyan: #00f2fe;
+            --accent-blue: #38bdf8;
             --accent-gold: #fbbf24;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -18,18 +18,38 @@
 
         body { 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            /* Fondo épico con Galactus al fondo y velo oscuro de lectura */
-            background: linear-gradient(rgba(7, 9, 19, 0.88), rgba(7, 9, 19, 0.92)), 
-                        url('https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+            background-color: var(--primary-dark);
+            /* Marca de agua corporativa sutil al fondo y degradado institucional */
+            background-image: 
+                linear-gradient(rgba(10, 17, 40, 0.92), rgba(10, 17, 40, 0.95)), 
+                url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop');
             background-size: cover;
+            background-attachment: fixed;
             margin: 0; 
             padding: 0; 
             color: var(--text-main); 
+            position: relative;
         }
 
-        /* Banner Superior Cósmico / Ejecutivo */
+        /* Marca de agua gigante con el nombre y estilo de la empresa al fondo */
+        body::before {
+            content: "COPY MASTER";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.025);
+            white-space: nowrap;
+            z-index: -1;
+            pointer-events: none;
+            letter-spacing: 10px;
+        }
+
+        /* Banner Superior Ejecutivo */
         .top-banner {
-            background: rgba(7, 9, 19, 0.9);
+            background: rgba(10, 17, 40, 0.9);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border-glass);
             width: 100%;
@@ -50,7 +70,7 @@
         }
 
         .brand-title {
-            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-size: 24px;
@@ -68,12 +88,12 @@
             font-weight: 700;
         }
 
-        /* Franja CMYK Cósmica */
+        /* Franja CMYK Radiante */
         .cmyk-bar {
             height: 4px;
             width: 100%;
-            background: linear-gradient(90deg, #00f2fe 0%, #ff007f 33%, #fbbf24 66%, #a855f7 100%);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+            background: linear-gradient(90deg, #00b4d8 25%, #ff007f 25% 50%, #facc15 50% 75%, #0f172a 75%);
+            box-shadow: 0 0 15px rgba(0, 180, 216, 0.5);
         }
 
         .user-panel {
@@ -115,7 +135,7 @@
             padding: 0 25px;
         }
 
-        /* KPIs Estilo Tarjetas Flotantes Cósmicas */
+        /* KPIs Estilo Tarjetas Flotantes */
         .kpi-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -180,7 +200,7 @@
             grid-column: span 2;
         }
 
-        /* Tarjetas Glassmorphism Oscuras de Lujo */
+        /* Tarjetas Glassmorphism */
         .card { 
             background: var(--panel-glass); 
             backdrop-filter: blur(16px);
@@ -197,7 +217,7 @@
         }
 
         .upload-card {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(11, 15, 28, 0.85) 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
@@ -263,7 +283,7 @@
         }
 
         button.btn-action { 
-            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); 
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
             color: white; 
             border: none; 
             padding: 12px 20px; 
@@ -273,11 +293,11 @@
             font-weight: 600;
             width: 100%;
             transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
         }
         button.btn-action:hover { 
             opacity: 0.95;
-            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6);
             transform: translateY(-1px);
         }
 
@@ -345,11 +365,11 @@
 </head>
 <body>
 
-    <!-- Banner Superior Cósmico -->
+    <!-- Banner Superior Ejecutivo -->
     <header class="top-banner">
         <div class="brand-area">
             <h1 class="brand-title">COPY MASTER TECHNOLOGY</h1>
-            <span class="brand-subtitle">Galactic Core Intelligence</span>
+            <span class="brand-subtitle">Enterprise Core Intelligence</span>
         </div>
         <div class="user-panel">
             <span id="nombreUsuario">Conectando...</span>
@@ -361,7 +381,7 @@
     <!-- Contenedor Principal -->
     <div class="main-container">
         
-        <!-- Tarjetas KPIs Estilo Galáctico -->
+        <!-- Tarjetas KPIs -->
         <div class="kpi-container">
             <div class="kpi-card kpi-1">
                 <div class="kpi-info">
@@ -388,7 +408,7 @@
             <!-- Tarjeta 1: Carga Masiva -->
             <div class="card upload-card">
                 <h2 style="color: #34d399; border-bottom-color: rgba(16, 185, 129, 0.2);">📁 Importación Masiva de Base de Datos</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Sube tu archivo (Excel o CSV) para volcado inmediato al núcleo.</p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Sube tu archivo (Excel o CSV) para volcado inmediato al sistema.</p>
                 <form id="formUploadRepuestos">
                     <div class="form-group">
                         <input type="file" id="archivoRepuestos" accept=".csv, .xlsx, .xls" required>
@@ -413,8 +433,8 @@
                         <div class="form-group" style="flex:1;">
                             <label>Estado:</label>
                             <select id="repEstado">
-                                <option value="Nuevo" style="background: #0b0f1c;">Nuevo</option>
-                                <option value="Usado" style="background: #0b0f1c;">Usado</option>
+                                <option value="Nuevo" style="background: #0f172a;">Nuevo</option>
+                                <option value="Usado" style="background: #0f172a;">Usado</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex:1;">
@@ -434,14 +454,14 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Tipo de Movimiento:</label>
                             <select id="movTipo" onchange="cambiarTipoMovimiento()" required>
-                                <option value="ENTRADA" style="background: #0b0f1c;">ENTRADA (Compra / Proveedor)</option>
-                                <option value="SALIDA" style="background: #0b0f1c;">SALIDA (Técnico / Cliente)</option>
+                                <option value="ENTRADA" style="background: #0f172a;">ENTRADA (Compra / Proveedor)</option>
+                                <option value="SALIDA" style="background: #0f172a;">SALIDA (Técnico / Cliente)</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 2;">
                             <label>Seleccionar Repuesto:</label>
                             <select id="movRepuesto" required>
-                                <option value="" style="background: #0b0f1c;">Cargando repuestos...</option>
+                                <option value="" style="background: #0f172a;">Cargando repuestos...</option>
                             </select>
                         </div>
                         <div class="form-group" style="flex: 1;">
@@ -565,9 +585,9 @@
             renderizarHistorial(cacheHistorial);
 
             const select = document.getElementById('movRepuesto');
-            select.innerHTML = '<option value="" style="background: #0b0f1c;">Seleccione un repuesto</option>';
+            select.innerHTML = '<option value="" style="background: #0f172a;">Seleccione un repuesto</option>';
             cacheRepuestos.forEach(r => {
-                select.innerHTML += `<option value="${r.id_repuesto}" style="background: #0b0f1c;">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
+                select.innerHTML += `<option value="${r.id_repuesto}" style="background: #0f172a;">${r.codigo_interno} - ${r.descripcion} (Stock: ${r.stock_actual})</option>`;
             });
 
         } catch (err) {
@@ -718,7 +738,7 @@
 
         const res = await fetch('/api/almacen/movimiento', {
             method: 'POST',
-            headers: { 'Command-Type': 'application/json', 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
         const r = await res.json();

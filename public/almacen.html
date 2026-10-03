@@ -3,286 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Módulo de Almacén - Copy Master Technology</title>
+    <title>Copy Master Technology - Módulo de Almacén</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f6f9; 
-            margin: 0; 
-            padding: 20px; 
-            color: #333; 
+        :root {
+            --primary-blue: #0b2545;
+            --accent-blue: #0056b3;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --border-color: #e2e8f0;
         }
-        .container { 
-            max-width: 1000px; 
-            margin: auto; 
-            background: white; 
-            padding: 25px; 
-            border-radius: 10px; 
-            box-shadow: 0 6px 15px rgba(0,0,0,0.08); 
-            border-top: 6px solid #0056b3;
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text-main); 
+        }
+
+        /* Banner superior de extremo a extremo */
+        .top-banner {
+            background-color: var(--primary-blue);
+            width: 100%;
+            padding: 20px 40px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             position: relative;
         }
-        /* Franja decorativa CMYK inspirada en los colores del logo de la empresa */
-        .container::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 20px;
-            right: 20px;
-            height: 4px;
-            background: linear-gradient(90deg, #5bc0de 25%, #ff007f 25% 50%, #ffd166 50% 75%, #212529 75%);
-            border-radius: 2px;
+
+        .brand-area {
+            display: flex;
+            flex-direction: column;
         }
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #edf2f7; 
-            padding-bottom: 15px; 
-            margin-bottom: 25px; 
+
+        .brand-title {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0;
         }
-        h1, h2 { 
-            color: #0b2545; 
+
+        .brand-subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 4px;
         }
-        h1 {
-            font-size: 24px;
-            letter-spacing: 0.5px;
+
+        /* Franja CMYK real a todo el ancho de la pantalla */
+        .cmyk-bar {
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg, #00b4d8 25%, #ff007f 25% 50%, #ffd166 50% 75%, #212529 75%);
         }
+
+        .user-panel {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-panel span {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
         .btn-salir { 
-            background: #dc3545; 
+            background: #ef4444; 
             color: white; 
             border: none; 
-            padding: 8px 15px; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            text-decoration: none; 
-        }
-        .btn-salir:hover { 
-            background: #c82333; 
-        }
-        .form-group { 
-            margin-bottom: 15px; 
-        }
-        label { 
-            display: block; 
-            margin-bottom: 5px; 
-            font-weight: bold; 
-            color: #2b2d42;
-        }
-        input, select, textarea { 
-            width: 100%; 
-            padding: 10px; 
-            border: 1px solid #ccd5ae; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            background-color: #fafbfc;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #0056b3;
-            outline: none;
-            background-color: #fff;
-        }
-        button { 
-            background: #0056b3; 
-            color: white; 
-            border: none; 
-            padding: 10px 18px; 
+            padding: 8px 16px; 
             border-radius: 6px; 
             cursor: pointer; 
-            font-size: 15px; 
             font-weight: bold;
             transition: background 0.2s;
         }
-        button:hover { 
+        .btn-salir:hover { 
+            background: #dc2626; 
+        }
+
+        /* Contenedor principal con diseño en cuadrícula (Grid) */
+        .main-container {
+            max-width: 1300px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+
+        h2 { 
+            color: var(--primary-blue); 
+            font-size: 18px;
+            margin-top: 0;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group { 
+            margin-bottom: 15px; 
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 6px; 
+            font-weight: 600; 
+            font-size: 13px;
+            color: #475569;
+        }
+
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            background-color: #f8fafc;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0,86,179,0.1);
+        }
+
+        button.btn-action { 
+            background: var(--accent-blue); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        button.btn-action:hover { 
             background: #003d82; 
         }
+
         table { 
             width: 100%; 
             border-collapse: collapse; 
-            margin-top: 15px; 
+            margin-top: 10px; 
         }
+
         th, td { 
-            border: 1px solid #e2e8f0; 
-            padding: 10px; 
+            border: 1px solid var(--border-color); 
+            padding: 12px; 
             text-align: left; 
             font-size: 14px; 
         }
+
         th { 
             background-color: #f8fafc; 
             color: #1e293b;
+            font-weight: 600;
         }
-        .section { 
-            margin-bottom: 35px; 
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #edf2f7;
+
+        tr:nth-child(even) {
+            background-color: #fcfcfc;
         }
+
         .alerta-stock { 
             background-color: #fee2e2; 
             color: #991b1b; 
             font-weight: bold; 
-            padding: 3px 8px; 
+            padding: 4px 8px; 
             border-radius: 4px; 
+            display: inline-block;
+        }
+
+        .upload-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 2px dashed #4ade80;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <h1>Copy Master Technology - Almacén</h1>
-        <div>
-            <span id="nombreUsuario" style="margin-right: 15px; font-weight: bold; color: #475569;"></span>
+    <!-- Banner Superior a Pantalla Completa -->
+    <header class="top-banner">
+        <div class="brand-area">
+            <h1 class="brand-title">COPY MASTER TECHNOLOGY</h1>
+            <span class="brand-subtitle">Módulo de Almacén e Inventarios</span>
+        </div>
+        <div class="user-panel">
+            <span id="nombreUsuario">Cargando...</span>
             <button class="btn-salir" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
+    </header>
+    <div class="cmyk-bar"></div>
+
+    <!-- Contenedor Organizado en Cuadrícula (Grid) -->
+    <div class="main-container">
+        
+        <div class="dashboard-grid">
+            
+            <!-- TARJETA 1: CARGA MASIVA -->
+            <div class="card upload-card">
+                <h2 style="color: #166534; border-bottom-color: #bbf7d0;">📁 Importación Masiva de Base de Datos</h2>
+                <p style="font-size: 13px; color: #475569; margin-bottom: 15px;">Sube tu archivo (Excel o CSV) con columnas de inventario para volcado inmediato.</p>
+                <form id="formUploadRepuestos">
+                    <div class="form-group">
+                        <input type="file" id="archivoRepuestos" accept=".csv, .xlsx, .xls" required>
+                    </div>
+                    <button type="submit" class="btn-action" style="background: #16a34a;">Procesar e Importar Base de Datos</button>
+                </form>
+            </div>
+
+            <!-- TARJETA 2: REGISTRO INDIVIDUAL -->
+            <div class="card">
+                <h2>➕ Registrar Nuevo Repuesto</h2>
+                <form id="formRepuesto">
+                    <div class="form-group">
+                        <label>Código Interno:</label>
+                        <input type="text" id="repCodigo" required placeholder="Ej: REP-001">
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción:</label>
+                        <input type="text" id="repDesc" required placeholder="Detalle del repuesto...">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="form-group" style="flex:1;">
+                            <label>Estado:</label>
+                            <select id="repEstado">
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="Usado">Usado</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label>Stock Mínimo:</label>
+                            <input type="number" id="repMinimo" value="2" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-action">Guardar Repuesto</button>
+                </form>
+            </div>
+
+            <!-- TARJETA 3: REGISTRO DE MOVIMIENTOS (ANCHO COMPLETO) -->
+            <div class="card full-width">
+                <h2>🔄 Registrar Movimiento (Entrada / Salida de Almacén)</h2>
+                <form id="formMovimiento">
+                    <div style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Tipo de Movimiento:</label>
+                            <select id="movTipo" onchange="cambiarTipoMovimiento()" required>
+                                <option value="ENTRADA">ENTRADA (Compra / Proveedor)</option>
+                                <option value="SALIDA">SALIDA (Técnico / Cliente)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 2;">
+                            <label>Seleccionar Repuesto:</label>
+                            <select id="movRepuesto" required>
+                                <option value="">Cargando repuestos...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Cantidad:</label>
+                            <input type="number" id="movCantidad" min="1" value="1" required>
+                        </div>
+                    </div>
+
+                    <div id="camposEntrada" style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;"><label>Factura:</label><input type="text" id="movFactura" placeholder="FAC-001"></div>
+                        <div class="form-group" style="flex: 1;"><label>Proveedor:</label><input type="text" id="movProveedor" placeholder="Nombre proveedor"></div>
+                        <div class="form-group" style="flex: 1;"><label>Costo Unitario:</label><input type="number" step="0.01" id="movCostoU" placeholder="0.00"></div>
+                    </div>
+
+                    <div id="camposSalida" style="display:none; display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;"><label>Motivo:</label><input type="text" id="movMotivo" placeholder="Mantenimiento"></div>
+                        <div class="form-group" style="flex: 1;"><label>Técnico:</label><input type="text" id="movEntregado" placeholder="Nombre técnico"></div>
+                        <div class="form-group" style="flex: 1;"><label>Cliente / Serial:</label><input type="text" id="movCliente" placeholder="Cliente / Serial"></div>
+                    </div>
+
+                    <button type="submit" class="btn-action" style="margin-top: 10px;">Registrar Movimiento en Tiempo Real</button>
+                </form>
+            </div>
+
+            <!-- TARJETA 4: INVENTARIO ACTUAL (ANCHO COMPLETO) -->
+            <div class="card full-width">
+                <h2>📦 Catálogo y Stock Actual en Inventario</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th>Stock Actual</th>
+                                <th>Mínimo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaRepuestos">
+                            <tr><td colspan="5">Cargando inventario...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TARJETA 5: KARDEX / HISTORIAL (ANCHO COMPLETO) -->
+            <div class="card full-width">
+                <h2>📊 Historial de Movimientos (Kardex Gerencial)</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Tipo</th>
+                                <th>Repuesto</th>
+                                <th>Cantidad</th>
+                                <th>Detalles y Destino</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaHistorial">
+                            <tr><td colspan="5">Cargando historial...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
     </div>
-
-    <!-- SECCIÓN: CARGA MASIVA DE BASE DE DATOS (EXCEL / CSV) -->
-    <div class="section" style="background: #f0fdf4; border: 2px dashed #4ade80;">
-        <h2 style="color: #166534; margin-top: 0;">Importar Base de Datos Masiva (Excel / CSV)</h2>
-        <p style="font-size: 14px; color: #475569;">Sube el archivo con tu base de datos existente. Columnas compatibles: <b>codigo_interno</b>, <b>descripcion</b>, <b>stock_actual</b>, <b>stock_minimo</b>.</p>
-        <form id="formUploadRepuestos">
-            <div class="form-group">
-                <input type="file" id="archivoRepuestos" accept=".csv, .xlsx, .xls" required>
-            </div>
-            <button type="submit" style="background: #16a34a;">Subir y Cargar Base de Datos Completa</button>
-        </form>
-    </div>
-
-    <!-- SECCIÓN: REGISTRAR NUEVO REPUESTO -->
-    <div class="section">
-        <h2>Registrar Nuevo Repuesto (Individual)</h2>
-        <form id="formRepuesto">
-            <div class="form-group">
-                <label>Código Interno:</label>
-                <input type="text" id="repCodigo" required placeholder="Ej: REP-001">
-            </div>
-            <div class="form-group">
-                <label>Descripción:</label>
-                <textarea id="repDesc" required placeholder="Detalle del repuesto..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Estado:</label>
-                <select id="repEstado">
-                    <option value="Nuevo">Nuevo</option>
-                    <option value="Usado">Usado</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Uso Destino:</label>
-                <select id="repUso">
-                    <option value="Ambos">Ambos</option>
-                    <option value="Venta">Venta</option>
-                    <option value="Alquiler">Alquiler</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Stock Mínimo de Alerta:</label>
-                <input type="number" id="repMinimo" value="2" required>
-            </div>
-            <button type="submit">Guardar Repuesto</button>
-        </form>
-    </div>
-
-    <!-- SECCIÓN: REGISTRAR MOVIMIENTO -->
-    <div class="section">
-        <h2>Registrar Movimiento (Entrada / Salida)</h2>
-        <form id="formMovimiento">
-            <div class="form-group">
-                <label>Tipo de Movimiento:</label>
-                <select id="movTipo" onchange="cambiarTipoMovimiento()" required>
-                    <option value="ENTRADA">ENTRADA (Compra / Proveedor)</option>
-                    <option value="SALIDA">SALIDA (Técnico / Cliente)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Seleccionar Repuesto:</label>
-                <select id="movRepuesto" required>
-                    <option value="">Cargando repuestos...</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Cantidad:</label>
-                <input type="number" id="movCantidad" min="1" value="1" required>
-            </div>
-
-            <div id="camposEntrada">
-                <div class="form-group">
-                    <label>Número de Factura:</label>
-                    <input type="text" id="movFactura" placeholder="Ej: FAC-9876">
-                </div>
-                <div class="form-group">
-                    <label>Proveedor:</label>
-                    <input type="text" id="movProveedor" placeholder="Nombre del proveedor">
-                </div>
-                <div class="form-group">
-                    <label>Costo Unitario:</label>
-                    <input type="number" step="0.01" id="movCostoU" placeholder="0.00">
-                </div>
-            </div>
-
-            <div id="camposSalida" style="display:none;">
-                <div class="form-group">
-                    <label>Motivo de Salida:</label>
-                    <input type="text" id="movMotivo" placeholder="Ej: Mantenimiento correctivo">
-                </div>
-                <div class="form-group">
-                    <label>Entregado a (Técnico):</label>
-                    <input type="text" id="movEntregado" placeholder="Nombre del técnico">
-                </div>
-                <div class="form-group">
-                    <label>Cliente:</label>
-                    <input type="text" id="movCliente" placeholder="Empresa cliente">
-                </div>
-                <div class="form-group">
-                    <label>Serial de Máquina:</label>
-                    <input type="text" id="movSerial" placeholder="Serial de la impresora">
-                </div>
-            </div>
-
-            <button type="submit">Registrar Movimiento</button>
-        </form>
-    </div>
-
-    <!-- SECCIÓN: INVENTARIO ACTUAL -->
-    <div class="section">
-        <h2>Catálogo y Stock Actual</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Descripción</th>
-                    <th>Estado</th>
-                    <th>Stock Actual</th>
-                    <th>Mínimo</th>
-                </tr>
-            </thead>
-            <tbody id="tablaRepuestos">
-                <tr><td colspan="5">Cargando inventario...</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- SECCIÓN: HISTORIAL DE MOVIMIENTOS (KARDEX) -->
-    <div class="section">
-        <h2>Historial de Movimientos (Kardex)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Repuesto</th>
-                    <th>Cant</th>
-                    <th>Detalles / Destino</th>
-                </tr>
-            </thead>
-            <tbody id="tablaHistorial">
-                <tr><td colspan="5">Cargando historial...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 
 <script>
     const rol = localStorage.getItem('rol');
@@ -301,11 +386,11 @@
     function cambiarTipoMovimiento() {
         const tipo = document.getElementById('movTipo').value;
         if (tipo === 'ENTRADA') {
-            document.getElementById('camposEntrada').style.display = 'block';
+            document.getElementById('camposEntrada').style.display = 'flex';
             document.getElementById('camposSalida').style.display = 'none';
         } else {
             document.getElementById('camposEntrada').style.display = 'none';
-            document.getElementById('camposSalida').style.display = 'block';
+            document.getElementById('camposSalida').style.display = 'flex';
         }
     }
 
@@ -324,7 +409,7 @@
                 
                 const enAlerta = r.stock_actual <= r.stock_minimo;
                 tablaRep.innerHTML += `<tr>
-                    <td>${r.codigo_interno}</td>
+                    <td><b>${r.codigo_interno}</b></td>
                     <td>${r.descripcion}</td>
                     <td>${r.estado_repuesto}</td>
                     <td><span class="${enAlerta ? 'alerta-stock' : ''}">${r.stock_actual}</span></td>
@@ -387,7 +472,7 @@
             codigo_interno: document.getElementById('repCodigo').value,
             descripcion: document.getElementById('repDesc').value,
             estado_repuesto: document.getElementById('repEstado').value,
-            uso_destino: document.getElementById('repUso').value,
+            uso_destino: 'Ambos',
             stock_minimo: parseInt(document.getElementById('repMinimo').value)
         };
 
@@ -418,8 +503,7 @@
             costo_unitario: parseFloat(document.getElementById('movCostoU').value) || null,
             motivo_salida: document.getElementById('movMotivo').value,
             entregado_a: document.getElementById('movEntregado').value,
-            cliente: document.getElementById('movCliente').value,
-            serial_maquina: document.getElementById('movSerial').value
+            cliente: document.getElementById('movCliente').value
         };
 
         const res = await fetch('/api/almacen/movimiento', {

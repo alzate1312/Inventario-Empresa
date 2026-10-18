@@ -4,6 +4,7 @@
   "description": "Sistema de gestión de inventario para Copy Master Technology",
   "main": "server.js",
   "scripts": {
+    "db:inspect": "node scripts/inspeccionar-bd.js"
     "start": "node server.js"
   },
   "dependencies": {

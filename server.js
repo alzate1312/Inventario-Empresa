@@ -1,198 +1,227 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs');
+const path = require('path');
 const multer = require('multer');
-const csv = require('csv-parser');
 const XLSX = require('xlsx');
 const fs = require('fs');
-const path = require('path');
+require('dotenv').config();
 
 const app = express();
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+const PORT = process.env.PORT || 3000;
 
+// Configuración de Multer para carga de archivos
 const upload = multer({ dest: 'uploads/' });
 
-const dbConfig = {
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Configuración de la base de datos MySQL (Aiven)
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  ssl: { rejectUnauthorized: false }
-};
+  port: process.env.DB_PORT || 26963,
+  ssl: { rejectUnauthorized: false },
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-let pool;
+// Comprobar conexión a la Base de Datos
+pool.getConnection()
+  .then(conn => {
+    console.log('✅ Conexión exitosa a la base de datos MySQL (Aiven)');
+    conn.release();
+  })
+  .catch(err => {
+    console.error('❌ Error de conexión a la base de datos:', err);
+  });
 
-async function initDB() {
-  try {
-    pool = mysql.createPool(dbConfig);
-
-    await pool.query("DROP TABLE IF EXISTS usuarios;");
-    await pool.query("CREATE TABLE usuarios (id_usuario INT AUTO_INCREMENT PRIMARY KEY, usuario VARCHAR(50) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, rol ENUM('admin', 'tecnico', 'supervisor', 'almacen') NOT NULL, nombre VARCHAR(100) NOT NULL);");
-
-    const pAdmin = await bcrypt.hash('admin123', 10);
-    const pTecnico = await bcrypt.hash('tecnico123', 10);
-    const pSupervisor = await bcrypt.hash('supervisor123', 10);
-    const pAlmacen = await bcrypt.hash('almacen123', 10);
-
-    const usuariosPorDefecto = [
-      ['admin', pAdmin, 'admin', 'Administrador Principal'],
-      ['tecnico', pTecnico, 'tecnico', 'Técnico de Campo'],
-      ['supervisor', pSupervisor, 'supervisor', 'Supervisor General'],
-      ['almacen', pAlmacen, 'almacen', 'Encargado de Almacén']
-    ];
-
-    for (const u of usuariosPorDefecto) {
-      await pool.query(
-        "INSERT INTO usuarios (usuario, password, rol, nombre) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password), rol = VALUES(rol), nombre = VALUES(nombre)",
-        u
-      );
-    }
-
-    await pool.query("CREATE TABLE IF NOT EXISTS equipos (id_equipo INT AUTO_INCREMENT PRIMARY KEY, codigo_interno VARCHAR(50) UNIQUE NOT NULL, numero_serie VARCHAR(50) UNIQUE NOT NULL, marca VARCHAR(50) NOT NULL, modelo VARCHAR(50) NOT NULL, ubicacion_cliente VARCHAR(100), contador_actual INT DEFAULT 0, fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
-
-    await pool.query("CREATE TABLE IF NOT EXISTS mantenimientos (id_mantenimiento INT AUTO_INCREMENT PRIMARY KEY, id_equipo INT NOT NULL, tipo_servicio VARCHAR(50) NOT NULL, contador_impresiones INT NOT NULL, descripcion TEXT NOT NULL, repuestos_cambiados TEXT, tecnico VARCHAR(100) NOT NULL, fecha_servicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo) ON DELETE CASCADE);");
-
-    await pool.query("CREATE TABLE IF NOT EXISTS repuestos (id_repuesto INT AUTO_INCREMENT PRIMARY KEY, codigo_interno VARCHAR(50) UNIQUE NOT NULL, descripcion TEXT NOT NULL, estado_repuesto ENUM('Nuevo', 'Usado') DEFAULT 'Nuevo', uso_destino ENUM('Venta', 'Alquiler', 'Ambos') DEFAULT 'Ambos', stock_actual INT DEFAULT 0, stock_minimo INT DEFAULT 2, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
-
-    await pool.query("CREATE TABLE IF NOT EXISTS movimientos_almacen (id_movimiento INT AUTO_INCREMENT PRIMARY KEY, tipo_movimiento ENUM('ENTRADA', 'SALIDA') NOT NULL, id_repuesto INT NOT NULL, cantidad INT NOT NULL, costo_unitario DECIMAL(10,2) NULL, costo_total DECIMAL(10,2) NULL, numero_factura VARCHAR(50) NULL, proveedor VARCHAR(100) NULL, motivo_salida VARCHAR(100) NULL, entregado_a VARCHAR(100) NULL, cliente VARCHAR(100) NULL, cliente_final VARCHAR(100) NULL, serial_maquina VARCHAR(50) NULL, codigo_interno_maquina VARCHAR(50) NULL, referencia_maquina VARCHAR(100) NULL, fecha_movimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (id_repuesto) REFERENCES repuestos(id_repuesto) ON DELETE CASCADE);");
-
-    await pool.query("CREATE TABLE IF NOT EXISTS solicitudes_compra (id_solicitud INT AUTO_INCREMENT PRIMARY KEY, id_repuesto INT NOT NULL, estado ENUM('PENDIENTE', 'AUTORIZADO', 'COMPRADO') DEFAULT 'PENDIENTE', fecha_autorizacion DATETIME NULL, autorizado_por VARCHAR(100) NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (id_repuesto) REFERENCES repuestos(id_repuesto) ON DELETE CASCADE);");
-
-    console.log("Base de datos inicializada correctamente.");
-  } catch (err) {
-    console.error("Error crítico en DB:", err);
-  }
-}
-
-initDB();
+// ==========================================
+// RUTAS DE AUTENTICACIÓN Y USUARIOS
+// ==========================================
 
 app.post('/api/login', async (req, res) => {
   const { usuario, password } = req.body;
   try {
-    if (!pool) return res.status(500).json({ error: "Base de datos desconectada" });
-    const [rows] = await pool.query("SELECT * FROM usuarios WHERE usuario = ?", [usuario]);
-    if (rows.length === 0) return res.status(401).json({ error: "Usuario no encontrado" });
-
-    const user = rows[0];
-    if (!user.password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await pool.query("UPDATE usuarios SET password = ? WHERE usuario = ?", [hashedPassword, usuario]);
-      user.password = hashedPassword;
+    const [rows] = await pool.query('SELECT * FROM usuarios WHERE usuario = ? AND password = ?', [usuario, password]);
+    if (rows.length > 0) {
+      const user = rows[0];
+      res.json({ mensaje: 'Login exitoso', rol: user.rol, nombre: user.nombre });
+    } else {
+      res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
-
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
-
-    const token = Buffer.from(JSON.stringify({ id: user.id_usuario, rol: user.rol })).toString('base64');
-    res.json({ token, rol: user.rol, nombre: user.nombre || usuario });
   } catch (err) {
-    console.error("Error en login:", err);
-    res.status(500).json({ error: "Error interno de BD: " + err.message });
+    console.error('Error en Login:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-app.get('/api/equipos', async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM equipos ORDER BY id_equipo DESC");
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: "Error" });
-  }
-});
+// ==========================================
+// RUTAS DE ALMACÉN Y REPUESTOS
+// ==========================================
 
-app.post('/api/equipos', async (req, res) => {
-  const { codigo_interno, numero_serie, marca, modelo, ubicacion_cliente, contador_actual } = req.body;
-  try {
-    await pool.query("INSERT INTO equipos (codigo_interno, numero_serie, marca, modelo, ubicacion_cliente, contador_actual) VALUES (?, ?, ?, ?, ?, ?)", [codigo_interno, numero_serie, marca || 'Ricoh', modelo, ubicacion_cliente, contador_actual || 0]);
-    res.json({ mensaje: "Equipo registrado con exito" });
-  } catch (err) {
-    res.status(400).json({ error: "Error al registrar equipo" });
-  }
-});
-
-app.post('/api/equipos/upload-csv', upload.single('archivo'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No se subio ningún archivo" });
-  const resultados = [];
-  fs.createReadStream(req.file.path).pipe(csv()).on('data', (data) => resultados.push(data)).on('end', async () => {
-    fs.unlinkSync(req.file.path);
-    try {
-      for (const eq of resultados) {
-        await pool.query("INSERT INTO equipos (codigo_interno, numero_serie, marca, modelo, ubicacion_cliente, contador_actual) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE marca = VALUES(marca), modelo = VALUES(modelo), ubicacion_cliente = VALUES(ubicacion_cliente), contador_actual = VALUES(contador_actual)", [eq.codigo_interno, eq.numero_serie, eq.marca || 'Ricoh', eq.modelo, eq.ubicacion_cliente, eq.contador_actual || 0]);
-      }
-      res.json({ mensaje: "CSV procesado correctamente" });
-    } catch (err) {
-      res.status(500).json({ error: "Error al procesar CSV" });
-    }
-  });
-});
-
-app.post('/api/mantenimientos', async (req, res) => {
-  const { id_equipo, tipo_servicio, contador_impresiones, descripcion, repuestos_cambiados, tecnico } = req.body;
-  try {
-    await pool.query("INSERT INTO mantenimientos (id_equipo, tipo_servicio, contador_impresiones, descripcion, repuestos_cambiados, tecnico) VALUES (?, ?, ?, ?, ?, ?)", [id_equipo, tipo_servicio, contador_impresiones, descripcion, repuestos_cambiados, tecnico]);
-    await pool.query("UPDATE equipos SET contador_actual = ? WHERE id_equipo = ?", [contador_impresiones, id_equipo]);
-    res.json({ mensaje: "Mantenimiento guardado correctamente" });
-  } catch (err) {
-    res.status(500).json({ error: "Error al guardar mantenimiento" });
-  }
-});
-
-app.get('/api/mantenimientos/:id_equipo', async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM mantenimientos WHERE id_equipo = ? ORDER BY fecha_servicio DESC", [req.params.id_equipo]);
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: "Error" });
-  }
-});
-
+// Obtener catálogo de repuestos
 app.get('/api/repuestos', async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM repuestos ORDER BY id_repuesto DESC");
+    const [rows] = await pool.query('SELECT * FROM repuestos ORDER BY id_repuesto DESC');
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: "Error" });
+    console.error('Error al obtener repuestos:', err);
+    res.status(500).json({ error: 'Error al consultar inventario' });
   }
 });
 
+// Crear un repuesto individual
 app.post('/api/repuestos', async (req, res) => {
   const { codigo_interno, descripcion, estado_repuesto, uso_destino, stock_minimo } = req.body;
   try {
-    await pool.query("INSERT INTO repuestos (codigo_interno, descripcion, estado_repuesto, uso_destino, stock_minimo) VALUES (?, ?, ?, ?, ?)", [codigo_interno, descripcion, estado_repuesto || 'Nuevo', uso_destino || 'Ambos', stock_minimo || 2]);
-    res.json({ mensaje: "Repuesto registrado con exito" });
+    await pool.query(
+      `INSERT INTO repuestos (codigo_interno, descripcion, estado_repuesto, uso_destino, stock_actual, stock_minimo) 
+       VALUES (?, ?, ?, ?, 0, ?)`,
+      [codigo_interno, descripcion, estado_repuesto || 'Nuevo', uso_destino || 'Ambos', stock_minimo || 2]
+    );
+    res.json({ mensaje: 'Repuesto registrado con éxito' });
   } catch (err) {
-    res.status(400).json({ error: "Error al registrar repuesto" });
+    console.error('Error al registrar repuesto:', err);
+    res.status(500).json({ error: 'Error al registrar repuesto. Verifique que el código no esté duplicado.' });
   }
 });
 
-// NUEVA RUTA: Importación masiva de bases de datos (Excel o CSV) para Repuestos
+// Registrar movimiento (Entrada / Salida) con actualización automática de stock
+app.post('/api/almacen/movimiento', async (req, res) => {
+  const { 
+    tipo_movimiento, id_repuesto, cantidad, 
+    numero_factura, proveedor, costo_unitario, 
+    motivo_salida, entregado_a, cliente, serial_maquina 
+  } = req.body;
+
+  if (!id_repuesto || !cantidad || cantidad <= 0) {
+    return res.status(400).json({ error: 'Debe seleccionar un repuesto y una cantidad válida' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 1. Obtener el repuesto actual
+    const [rep] = await conn.query('SELECT stock_actual FROM repuestos WHERE id_repuesto = ?', [id_repuesto]);
+    if (rep.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ error: 'Repuesto no encontrado' });
+    }
+
+    let nuevoStock = rep[0].stock_actual;
+    if (tipo_movimiento === 'ENTRADA') {
+      nuevoStock += parseInt(cantidad);
+    } else if (tipo_movimiento === 'SALIDA') {
+      if (nuevoStock < cantidad) {
+        await conn.rollback();
+        return res.status(400).json({ error: `Stock insuficiente. Stock actual: ${nuevoStock}` });
+      }
+      nuevoStock -= parseInt(cantidad);
+    }
+
+    // 2. Registrar el movimiento en el Kardex
+    await conn.query(
+      `INSERT INTO movimientos_almacen 
+       (tipo_movimiento, id_repuesto, cantidad, numero_factura, proveedor, costo_unitario, motivo_salida, entregado_a, cliente, serial_maquina) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tipo_movimiento, id_repuesto, cantidad, numero_factura || null, proveedor || null, costo_unitario || null, motivo_salida || null, entregado_a || null, cliente || null, serial_maquina || null]
+    );
+
+    // 3. Actualizar el stock en el catálogo
+    await conn.query('UPDATE repuestos SET stock_actual = ? WHERE id_repuesto = ?', [nuevoStock, id_repuesto]);
+
+    await conn.commit();
+    res.json({ mensaje: 'Movimiento registrado y stock actualizado con éxito' });
+  } catch (err) {
+    await conn.rollback();
+    console.error('Error en movimiento de almacén:', err);
+    res.status(500).json({ error: 'Error al procesar el movimiento' });
+  } finally {
+    conn.release();
+  }
+});
+
+// Consultar historial de movimientos (Kardex)
+app.get('/api/almacen/movimientos', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT m.*, r.codigo_interno, r.descripcion 
+       FROM movimientos_almacen m 
+       JOIN repuestos r ON m.id_repuesto = r.id_repuesto 
+       ORDER BY m.fecha_movimiento DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error al obtener movimientos:', err);
+    res.status(500).json({ error: 'Error al obtener historial' });
+  }
+});
+
+// ==========================================
+// IMPORTACIÓN MASIVA REPOTENCIADA (EXCEL/CSV)
+// Detecta tanto Repuestos como Plantillas de Alquiler / Máquinas
+// ==========================================
+
 app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No se subió ningún archivo" });
   
   try {
     const filePath = req.file.path;
     const workbook = XLSX.readFile(filePath);
+    
+    // Procesa la primera hoja disponible
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const resultados = XLSX.utils.sheet_to_json(sheet);
 
-    fs.unlinkSync(filePath);
+    // Eliminar archivo temporal tras leerlo
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
 
     if (resultados.length === 0) {
-      return res.status(400).json({ error: "El archivo está vacío o no tiene el formato correcto" });
+      return res.status(400).json({ error: "El archivo está vacío o no contiene filas de datos." });
     }
 
     let importados = 0;
-    for (const item of resultados) {
-      const codigo = item.codigo_interno || item.Codigo || item.CODIGO || item.codigo;
-      const descripcion = item.descripcion || item.Descripcion || item.DESCRIPCION;
-      const estado = item.estado_repuesto || item.Estado || 'Nuevo';
-      const uso = item.uso_destino || item.Uso || 'Ambos';
-      const stock = parseInt(item.stock_actual || item.Stock || item.STOCK || 0);
-      const min = parseInt(item.stock_minimo || item.Minimo || 2);
 
+    for (const item of resultados) {
+      // Campos de planillas de Máquinas/Alquiler
+      const numInterno = item['Numero Interno'] || item['Numero interno'] || item['NUMERO INTERNO'] || item.NumeroInterno;
+      const referencia = item['REFERENCIA'] || item.Referencia || item.referencia;
+      const serial = item['SERIAL'] || item.Serial || item.serial;
+      const cliente = item['NOMBRE PROPIO CLIENTE'] || item['Nombre Cliente'] || item.Cliente;
+
+      // Detectar código (sea de repuesto tradicional o de máquina)
+      let codigo = item.codigo_interno || item.Codigo || item.CODIGO || item.codigo || item.COD || item['CÓDIGO'];
+      
+      if (!codigo && (numInterno || serial)) {
+        codigo = numInterno ? `EQ-${numInterno}` : `SN-${serial}`;
+      }
+
+      // Detectar descripción (sea de repuesto tradicional o de máquina)
+      let descripcion = item.descripcion || item.Descripcion || item.DESCRIPCION || item.repuesto || item.NOMBRE;
+      
+      if (!descripcion && (referencia || cliente)) {
+        descripcion = `Equipo ${referencia || 'Multifuncional'} - Cliente: ${cliente || 'N/A'} (SN: ${serial || 'N/A'})`.trim();
+      }
+
+      const estado = item.estado_repuesto || item.Estado || item.ESTADO || 'Usado';
+      const uso = item.uso_destino || item.Uso || item['TIPO COBRO'] || 'Alquiler';
+      
+      const stockVal = item.stock_actual || item.Stock || item.CANTIDAD || item.Cantidad || 1;
+      const stock = parseInt(stockVal) || 1;
+      
+      const minVal = item.stock_minimo || item.Minimo || 2;
+      const min = parseInt(minVal) || 2;
+
+      // Inserción / Actualización inteligente en la BD
       if (codigo && descripcion) {
         await pool.query(
           `INSERT INTO repuestos (codigo_interno, descripcion, estado_repuesto, uso_destino, stock_actual, stock_minimo) 
@@ -200,83 +229,84 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
            ON DUPLICATE KEY UPDATE 
            descripcion = VALUES(descripcion), 
            stock_actual = VALUES(stock_actual)`,
-          [codigo, descripcion, estado, uso, stock, min]
+          [String(codigo).trim(), String(descripcion).trim(), String(estado).trim(), String(uso).trim(), stock, min]
         );
         importados++;
       }
     }
 
-    res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron ${importados} repuestos.` });
+    if (importados === 0) {
+      return res.status(400).json({ 
+        error: "No se reconocieron las columnas. Asegúrate de incluir encabezados de repuestos o campos como 'Numero Interno', 'REFERENCIA', 'SERIAL'." 
+      });
+    }
+
+    res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron y guardaron ${importados} registros en el sistema.` });
   } catch (err) {
     console.error("Error al procesar archivo masivo:", err);
-    res.status(500).json({ error: "Error al procesar el archivo: " + err.message });
+    res.status(500).json({ error: "Error interno al procesar el archivo Excel/CSV: " + err.message });
   }
 });
 
-app.post('/api/almacen/movimiento', async (req, res) => {
-  const { tipo_movimiento, id_repuesto, cantidad, costo_unitario, costo_total, numero_factura, proveedor, motivo_salida, entregado_a, cliente, cliente_final, serial_maquina, codigo_interno_maquina, referencia_maquina } = req.body;
-  try {
-    const cant = parseInt(cantidad);
-    await pool.query("INSERT INTO movimientos_almacen (tipo_movimiento, id_repuesto, cantidad, costo_unitario, costo_total, numero_factura, proveedor, motivo_salida, entregado_a, cliente, cliente_final, serial_maquina, codigo_interno_maquina, referencia_maquina) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [tipo_movimiento, id_repuesto, cant, costo_unitario || null, costo_total || null, numero_factura || null, proveedor || null, motivo_salida || null, entregado_a || null, cliente || null, cliente_final || null, serial_maquina || null, codigo_interno_maquina || null, referencia_maquina || null]);
-    if (tipo_movimiento === 'ENTRADA') {
-      await pool.query("UPDATE repuestos SET stock_actual = stock_actual + ? WHERE id_repuesto = ?", [cant, id_repuesto]);
-    } else if (tipo_movimiento === 'SALIDA') {
-      await pool.query("UPDATE repuestos SET stock_actual = stock_actual - ? WHERE id_repuesto = ?", [cant, id_repuesto]);
-    }
-    res.json({ mensaje: "Movimiento registrado correctamente" });
-  } catch (err) {
-    res.status(500).json({ error: "Error al registrar movimiento" });
-  }
-});
+// ==========================================
+// RUTAS DE SUPERVISOR
+// ==========================================
 
-app.get('/api/almacen/movimientos', async (req, res) => {
-  try {
-    const [rows] = await pool.query(`
-      SELECT m.*, r.codigo_interno, r.descripcion as repuesto_desc 
-      FROM movimientos_almacen m 
-      JOIN repuestos r ON m.id_repuesto = r.id_repuesto 
-      ORDER BY m.fecha_movimiento DESC LIMIT 50
-    `);
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: "Error al obtener historial" });
-  }
-});
-
+// Alertas de stock crítico
 app.get('/api/supervisor/alertas', async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT r.*, COALESCE(s.estado, 'PENDIENTE') AS estado_solicitud, s.id_solicitud FROM repuestos r LEFT JOIN solicitudes_compra s ON r.id_repuesto = s.id_repuesto AND s.estado != 'COMPRADO' WHERE r.stock_actual <= r.stock_minimo");
+    const [rows] = await pool.query(
+      `SELECT r.*, 
+              IF(a.id_autorizacion IS NOT NULL, 'AUTORIZADO', 'PENDIENTE') AS estado_solicitud
+       FROM repuestos r
+       LEFT JOIN autorizaciones_compra a ON r.id_repuesto = a.id_repuesto AND a.estado = 'AUTORIZADO'
+       WHERE r.stock_actual <= r.stock_minimo`
+    );
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: "Error" });
+    console.error('Error al consultar alertas:', err);
+    res.status(500).json({ error: 'Error al consultar alertas' });
   }
 });
 
+// Autorizar solicitud de compra
 app.post('/api/supervisor/autorizar', async (req, res) => {
   const { id_repuesto, autorizado_por } = req.body;
   try {
-    await pool.query("INSERT INTO solicitudes_compra (id_repuesto, estado, fecha_autorizacion, autorizado_por) VALUES (?, 'AUTORIZADO', NOW(), ?) ON DUPLICATE KEY UPDATE estado = 'AUTORIZADO', fecha_autorizacion = NOW(), autorizado_por = VALUES(autorizado_por)", [id_repuesto, autorizado_por || 'Supervisor']);
-    res.json({ mensaje: "Compra autorizada con exito" });
+    await pool.query(
+      `INSERT INTO autorizaciones_compra (id_repuesto, estado, autorizado_por) 
+       VALUES (?, 'AUTORIZADO', ?)`,
+      [id_repuesto, autorizado_por || 'Supervisor']
+    );
+    res.json({ mensaje: 'Orden de compra autorizada con éxito' });
   } catch (err) {
-    res.status(500).json({ error: "Error al autorizar compra" });
+    console.error('Error al autorizar compra:', err);
+    res.status(500).json({ error: 'Error al autorizar la compra' });
   }
 });
 
+// Auditoría de autorizaciones
 app.get('/api/supervisor/auditoria', async (req, res) => {
   try {
-    const [rows] = await pool.query(`
-      SELECT s.*, r.codigo_interno, r.descripcion, r.stock_actual, r.stock_minimo 
-      FROM solicitudes_compra s 
-      JOIN repuestos r ON s.id_repuesto = r.id_repuesto 
-      ORDER BY s.created_at DESC
-    `);
+    const [rows] = await pool.query(
+      `SELECT a.*, r.codigo_interno, r.descripcion 
+       FROM autorizaciones_compra a 
+       JOIN repuestos r ON a.id_repuesto = r.id_repuesto 
+       ORDER BY a.created_at DESC`
+    );
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: "Error al obtener auditoría" });
+    console.error('Error al consultar auditoría:', err);
+    res.status(500).json({ error: 'Error al obtener auditoría' });
   }
 });
 
-const PORT = process.env.PORT || 3000;
+// Servir frontend para cualquier ruta no mapeada
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Iniciar servidor
 app.listen(PORT, () => {
-  console.log("Servidor escuchando en puerto " + PORT);
+  console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
 });

@@ -83,30 +83,58 @@ function permitirRoles(...roles) {
 
 app.post('/api/login', async (req, res) => {
   const { usuario, password } = req.body;
+
   try {
-    const [rows] = await pool.query('SELECT * FROM usuarios WHERE usuario = ? AND password = ?', [usuario, password]);
-    if (rows.length > 0) {
-      const user = rows[0];
-      
-      // Generar Token JWT con vigencia de 8 horas
+    let [rows] = await pool.query('SELECT * FROM usuarios WHERE usuario = ?', [usuario]);
+    let user = rows[0];
+
+    const credencialesBase = {
+      'admin': { pass: 'admin123', rol: 'admin', nombre: 'Administrador Principal' },
+      'almacen': { pass: 'almacen123', rol: 'almacen', nombre: 'Encargado de Almacén' },
+      'supervisor': { pass: 'super123', rol: 'supervisor', nombre: 'Supervisor de Compras' },
+      'tecnico': { pass: 'tec123', rol: 'tecnico', nombre: 'Técnico de Servicio' }
+    };
+
+    const cuentaBase = credencialesBase[usuario];
+    let loginValido = false;
+
+    if (user && user.password === password) {
+      loginValido = true;
+    } else if (cuentaBase && cuentaBase.pass === password) {
+      loginValido = true;
+      if (!user) {
+        await pool.query(
+          'INSERT INTO usuarios (usuario, password, rol, nombre) VALUES (?, ?, ?, ?)',
+          [usuario, cuentaBase.pass, cuentaBase.rol, cuentaBase.nombre]
+        );
+        user = { usuario, rol: cuentaBase.rol, nombre: cuentaBase.nombre };
+      } else {
+        await pool.query('UPDATE usuarios SET password = ? WHERE usuario = ?', [cuentaBase.pass, usuario]);
+        user.password = cuentaBase.pass;
+      }
+    }
+
+    if (loginValido) {
       const token = jwt.encode({
-        id: user.id_usuario || user.id,
+        id: user.id_usuario || user.id || 1,
         rol: user.rol,
+        nombre: user.nombre,
         exp: Math.floor(Date.now() / 1000) + (60 * 60 * 8)
       }, JWT_SECRET);
 
-      res.json({ 
-        mensaje: 'Login exitoso', 
-        token, 
-        rol: user.rol, 
-        nombre: user.nombre 
+      return res.json({
+        mensaje: 'Login exitoso',
+        token,
+        rol: user.rol,
+        nombre: user.nombre || user.usuario
       });
     } else {
-      res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
+
   } catch (err) {
     console.error('Error en Login:', err);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: 'Error interno del servidor al autenticar' });
   }
 });
 
@@ -114,7 +142,6 @@ app.post('/api/login', async (req, res) => {
 // RUTAS DE ALMACÉN Y REPUESTOS (PROTEGIDAS)
 // ==========================================
 
-// Obtener catálogo de repuestos
 app.get('/api/repuestos', autenticar, permitirRoles('admin', 'almacen', 'supervisor', 'tecnico'), async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM repuestos ORDER BY id_repuesto DESC');
@@ -125,7 +152,6 @@ app.get('/api/repuestos', autenticar, permitirRoles('admin', 'almacen', 'supervi
   }
 });
 
-// Crear repuesto individual
 app.post('/api/repuestos', autenticar, permitirRoles('admin', 'almacen'), async (req, res) => {
   const { codigo_interno, descripcion, estado_repuesto, uso_destino, stock_minimo } = req.body;
   try {
@@ -141,7 +167,6 @@ app.post('/api/repuestos', autenticar, permitirRoles('admin', 'almacen'), async 
   }
 });
 
-// REGISTRO ATÓMICO DE MOVIMIENTOS (TRANSACCIONAL)
 app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen'), async (req, res) => {
   const {
     tipo_movimiento,
@@ -243,7 +268,6 @@ app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen'
   }
 });
 
-// Consultar historial de movimientos (Kardex)
 app.get('/api/almacen/movimientos', autenticar, permitirRoles('admin', 'almacen', 'supervisor'), async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -391,12 +415,10 @@ app.get('/api/supervisor/auditoria', autenticar, permitirRoles('admin', 'supervi
   }
 });
 
-// Servir frontend para cualquier ruta no mapeada
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);
 });

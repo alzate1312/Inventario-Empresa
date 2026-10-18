@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'copymaster_secret_key_2026_secure';
 
-// Configuración de Multer para carga de archivos temporales
+// Configuración de Multer
 const upload = multer({ dest: 'uploads/' });
 
 // Middleware Base
@@ -43,9 +43,38 @@ pool.getConnection()
   });
 
 // ==========================================
+// RUTA DIRECTA DE DIAGNÓSTICO DE TABLAS
+// ==========================================
+app.get('/api/debug/tablas', async (req, res) => {
+  try {
+    const [tablas] = await pool.query(
+      `SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE'`,
+      [process.env.DB_NAME]
+    );
+
+    let estructura = {};
+
+    for (const tabla of tablas) {
+      const nombreTabla = tabla.TABLE_NAME;
+      const [columnas] = await pool.query(
+        `SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT 
+         FROM information_schema.COLUMNS 
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? 
+         ORDER BY ORDINAL_POSITION`,
+        [process.env.DB_NAME, nombreTabla]
+      );
+      estructura[nombreTabla] = columnas;
+    }
+
+    res.json(estructura);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
 // MIDDLEWARES DE SEGURIDAD (JWT & ROLES)
 // ==========================================
-
 function autenticar(req, res, next) {
   const cabecera = req.headers.authorization;
   const token = cabecera?.startsWith('Bearer ') ? cabecera.slice(7) : null;
@@ -56,11 +85,9 @@ function autenticar(req, res, next) {
 
   try {
     const usuario = jwt.decode(token, JWT_SECRET);
-
     if (!usuario.id || !usuario.rol || !usuario.exp || usuario.exp <= Math.floor(Date.now() / 1000)) {
       return res.status(401).json({ error: 'Sesión inválida o vencida.' });
     }
-
     req.usuario = usuario;
     next();
   } catch (err) {
@@ -80,7 +107,6 @@ function permitirRoles(...roles) {
 // ==========================================
 // RUTAS DE AUTENTICACIÓN
 // ==========================================
-
 app.post('/api/login', async (req, res) => {
   const { usuario, password } = req.body;
 
@@ -131,7 +157,6 @@ app.post('/api/login', async (req, res) => {
     } else {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
-
   } catch (err) {
     console.error('Error en Login:', err);
     res.status(500).json({ error: 'Error interno del servidor al autenticar' });
@@ -139,10 +164,9 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ==========================================
-// RUTAS DE ALMACÉN Y REPUESTOS (PROTEGIDAS)
+// RUTAS DE ALMACÉN Y REPUESTOS
 // ==========================================
-
-app.get('/api/repuestos', autenticar, permitirRoles('admin', 'almacen', 'supervisor', 'tecnico'), async (req, res) => {
+app.get('/api/repuestos', autenticar, permitirRoles('admin', 'tecnico', 'almacen', 'supervisor'), async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM repuestos ORDER BY id_repuesto DESC');
     res.json(rows);
@@ -163,11 +187,11 @@ app.post('/api/repuestos', autenticar, permitirRoles('admin', 'almacen'), async 
     res.json({ mensaje: 'Repuesto registrado con éxito' });
   } catch (err) {
     console.error('Error al registrar repuesto:', err);
-    res.status(500).json({ error: 'Error al registrar repuesto. Verifique que el código no esté duplicado.' });
+    res.status(500).json({ error: 'Error al registrar repuesto.' });
   }
 });
 
-app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen'), async (req, res) => {
+app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen', 'tecnico'), async (req, res) => {
   const {
     tipo_movimiento,
     id_repuesto,
@@ -193,10 +217,6 @@ app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen'
 
   if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(cant) || cant <= 0) {
     return res.status(400).json({ error: 'Repuesto o cantidad inválidos.' });
-  }
-
-  if (tipo_movimiento === 'ENTRADA' && costo_unitario != null && (!Number.isFinite(Number(costo_unitario)) || Number(costo_unitario) < 0)) {
-    return res.status(400).json({ error: 'El costo unitario no es válido.' });
   }
 
   let conexion;
@@ -268,7 +288,7 @@ app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen'
   }
 });
 
-app.get('/api/almacen/movimientos', autenticar, permitirRoles('admin', 'almacen', 'supervisor'), async (req, res) => {
+app.get('/api/almacen/movimientos', autenticar, permitirRoles('admin', 'almacen', 'supervisor', 'tecnico'), async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT m.*, r.codigo_interno, r.descripcion 
@@ -282,10 +302,6 @@ app.get('/api/almacen/movimientos', autenticar, permitirRoles('admin', 'almacen'
     res.status(500).json({ error: 'Error al obtener historial' });
   }
 });
-
-// ==========================================
-// IMPORTACIÓN MASIVA FLEXIBLE (PROTEGIDA)
-// ==========================================
 
 app.post('/api/repuestos/upload', autenticar, permitirRoles('admin', 'almacen'), upload.single('archivo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No se subió ningún archivo" });
@@ -352,12 +368,6 @@ app.post('/api/repuestos/upload', autenticar, permitirRoles('admin', 'almacen'),
       }
     }
 
-    if (importados === 0) {
-      return res.status(400).json({ 
-        error: "No se reconocieron las columnas. Asegúrate de incluir encabezados válidos en tu archivo." 
-      });
-    }
-
     res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron ${importados} registros.` });
   } catch (err) {
     console.error("Error al procesar archivo masivo:", err);
@@ -365,85 +375,9 @@ app.post('/api/repuestos/upload', autenticar, permitirRoles('admin', 'almacen'),
   }
 });
 
-// ==========================================
-// RUTAS DE SUPERVISOR (PROTEGIDAS)
-// ==========================================
-
-app.get('/api/supervisor/alertas', autenticar, permitirRoles('admin', 'supervisor'), async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT r.*, 
-              IF(a.id_autorizacion IS NOT NULL, 'AUTORIZADO', 'PENDIENTE') AS estado_solicitud
-       FROM repuestos r
-       LEFT JOIN autorizaciones_compra a ON r.id_repuesto = a.id_repuesto AND a.estado = 'AUTORIZADO'
-       WHERE r.stock_actual <= r.stock_minimo`
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error('Error al consultar alertas:', err);
-    res.status(500).json({ error: 'Error al consultar alertas' });
-  }
-});
-
-app.post('/api/supervisor/autorizar', autenticar, permitirRoles('admin', 'supervisor'), async (req, res) => {
-  const { id_repuesto, autorizado_por } = req.body;
-  try {
-    await pool.query(
-      `INSERT INTO autorizaciones_compra (id_repuesto, estado, autorizado_por) 
-       VALUES (?, 'AUTORIZADO', ?)`,
-      [id_repuesto, autorizado_por || req.usuario.nombre || 'Supervisor']
-    );
-    res.json({ mensaje: 'Orden de compra autorizada con éxito' });
-  } catch (err) {
-    console.error('Error al autorizar compra:', err);
-    res.status(500).json({ error: 'Error al autorizar la compra' });
-  }
-});
-
-app.get('/api/supervisor/auditoria', autenticar, permitirRoles('admin', 'supervisor'), async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT a.*, r.codigo_interno, r.descripcion 
-       FROM autorizaciones_compra a 
-       JOIN repuestos r ON a.id_repuesto = r.id_repuesto 
-       ORDER BY a.created_at DESC`
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error('Error al consultar auditoría:', err);
-    res.status(500).json({ error: 'Error al obtener auditoría' });
-  }
-});
-
+// Rutas de captura general
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-// RUTA TEMPORAL GRATUITA PARA INSPECCIONAR TABLAS Y COLUMNAS
-app.get('/api/debug/tablas', async (req, res) => {
-  try {
-    const [tablas] = await pool.query(
-      `SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE'`,
-      [process.env.DB_NAME]
-    );
-
-    let estructura = {};
-
-    for (const tabla of tablas) {
-      const nombreTabla = tabla.TABLE_NAME;
-      const [columnas] = await pool.query(
-        `SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT 
-         FROM information_schema.COLUMNS 
-         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? 
-         ORDER BY ORDINAL_POSITION`,
-        [process.env.DB_NAME, nombreTabla]
-      );
-      estructura[nombreTabla] = columnas;
-    }
-
-    res.json(estructura);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 app.listen(PORT, () => {

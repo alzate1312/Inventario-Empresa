@@ -9,7 +9,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuración de Multer para carga de archivos
+// Configuración de Multer para carga de archivos temporales
 const upload = multer({ dest: 'uploads/' });
 
 // Middleware
@@ -75,7 +75,7 @@ app.get('/api/repuestos', async (req, res) => {
   }
 });
 
-// Crear un repuesto individual
+// Crear repuesto individual
 app.post('/api/repuestos', async (req, res) => {
   const { codigo_interno, descripcion, estado_repuesto, uso_destino, stock_minimo } = req.body;
   try {
@@ -107,7 +107,6 @@ app.post('/api/almacen/movimiento', async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    // 1. Obtener el repuesto actual
     const [rep] = await conn.query('SELECT stock_actual FROM repuestos WHERE id_repuesto = ?', [id_repuesto]);
     if (rep.length === 0) {
       await conn.rollback();
@@ -125,7 +124,6 @@ app.post('/api/almacen/movimiento', async (req, res) => {
       nuevoStock -= parseInt(cantidad);
     }
 
-    // 2. Registrar el movimiento en el Kardex
     await conn.query(
       `INSERT INTO movimientos_almacen 
        (tipo_movimiento, id_repuesto, cantidad, numero_factura, proveedor, costo_unitario, motivo_salida, entregado_a, cliente, serial_maquina) 
@@ -133,7 +131,6 @@ app.post('/api/almacen/movimiento', async (req, res) => {
       [tipo_movimiento, id_repuesto, cantidad, numero_factura || null, proveedor || null, costo_unitario || null, motivo_salida || null, entregado_a || null, cliente || null, serial_maquina || null]
     );
 
-    // 3. Actualizar el stock en el catálogo
     await conn.query('UPDATE repuestos SET stock_actual = ? WHERE id_repuesto = ?', [nuevoStock, id_repuesto]);
 
     await conn.commit();
@@ -164,8 +161,7 @@ app.get('/api/almacen/movimientos', async (req, res) => {
 });
 
 // ==========================================
-// IMPORTACIÓN MASIVA REPOTENCIADA (EXCEL/CSV)
-// Detecta tanto Repuestos como Plantillas de Alquiler / Máquinas
+// IMPORTACIÓN MASIVA FLEXIBLE (EXCEL / CSV)
 // ==========================================
 
 app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => {
@@ -174,13 +170,10 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
   try {
     const filePath = req.file.path;
     const workbook = XLSX.readFile(filePath);
-    
-    // Procesa la primera hoja disponible
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const resultados = XLSX.utils.sheet_to_json(sheet);
 
-    // Eliminar archivo temporal tras leerlo
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
@@ -192,36 +185,28 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
     let importados = 0;
 
     for (const item of resultados) {
-      // Campos de planillas de Máquinas/Alquiler
       const numInterno = item['Numero Interno'] || item['Numero interno'] || item['NUMERO INTERNO'] || item.NumeroInterno;
       const referencia = item['REFERENCIA'] || item.Referencia || item.referencia;
       const serial = item['SERIAL'] || item.Serial || item.serial;
       const cliente = item['NOMBRE PROPIO CLIENTE'] || item['Nombre Cliente'] || item.Cliente;
 
-      // Detectar código (sea de repuesto tradicional o de máquina)
       let codigo = item.codigo_interno || item.Codigo || item.CODIGO || item.codigo || item.COD || item['CÓDIGO'];
-      
       if (!codigo && (numInterno || serial)) {
         codigo = numInterno ? `EQ-${numInterno}` : `SN-${serial}`;
       }
 
-      // Detectar descripción (sea de repuesto tradicional o de máquina)
       let descripcion = item.descripcion || item.Descripcion || item.DESCRIPCION || item.repuesto || item.NOMBRE;
-      
       if (!descripcion && (referencia || cliente)) {
         descripcion = `Equipo ${referencia || 'Multifuncional'} - Cliente: ${cliente || 'N/A'} (SN: ${serial || 'N/A'})`.trim();
       }
 
       const estado = item.estado_repuesto || item.Estado || item.ESTADO || 'Usado';
       const uso = item.uso_destino || item.Uso || item['TIPO COBRO'] || 'Alquiler';
-      
       const stockVal = item.stock_actual || item.Stock || item.CANTIDAD || item.Cantidad || 1;
       const stock = parseInt(stockVal) || 1;
-      
       const minVal = item.stock_minimo || item.Minimo || 2;
       const min = parseInt(minVal) || 2;
 
-      // Inserción / Actualización inteligente en la BD
       if (codigo && descripcion) {
         await pool.query(
           `INSERT INTO repuestos (codigo_interno, descripcion, estado_repuesto, uso_destino, stock_actual, stock_minimo) 
@@ -237,11 +222,11 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
 
     if (importados === 0) {
       return res.status(400).json({ 
-        error: "No se reconocieron las columnas. Asegúrate de incluir encabezados de repuestos o campos como 'Numero Interno', 'REFERENCIA', 'SERIAL'." 
+        error: "No se reconocieron las columnas. Asegúrate de incluir encabezados válidos en tu archivo." 
       });
     }
 
-    res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron y guardaron ${importados} registros en el sistema.` });
+    res.json({ mensaje: `¡Base de datos importada con éxito! Se procesaron ${importados} registros.` });
   } catch (err) {
     console.error("Error al procesar archivo masivo:", err);
     res.status(500).json({ error: "Error interno al procesar el archivo Excel/CSV: " + err.message });
@@ -252,7 +237,6 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
 // RUTAS DE SUPERVISOR
 // ==========================================
 
-// Alertas de stock crítico
 app.get('/api/supervisor/alertas', async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -269,7 +253,6 @@ app.get('/api/supervisor/alertas', async (req, res) => {
   }
 });
 
-// Autorizar solicitud de compra
 app.post('/api/supervisor/autorizar', async (req, res) => {
   const { id_repuesto, autorizado_por } = req.body;
   try {
@@ -285,7 +268,6 @@ app.post('/api/supervisor/autorizar', async (req, res) => {
   }
 });
 
-// Auditoría de autorizaciones
 app.get('/api/supervisor/auditoria', async (req, res) => {
   try {
     const [rows] = await pool.query(

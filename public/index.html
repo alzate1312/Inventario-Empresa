@@ -1,196 +1,765 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copy Master Technology - Inicio de Sesión</title>
+    <meta name="theme-color" content="#073B78">
+    <meta name="description" content="Sistema de gestión de inventario y control de equipos de Copy Master Technology.">
+
+    <title>Copy Master Technology | Iniciar sesión</title>
+
     <style>
         :root {
-            --primary-dark: #0a1128;
-            --panel-glass: rgba(15, 23, 42, 0.85);
-            --border-glass: rgba(255, 255, 255, 0.12);
-            --accent-cyan: #00f2fe;
-            --accent-blue: #38bdf8;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --navy: #071a35;
+            --navy-light: #0b2c55;
+            --blue: #0756a5;
+            --blue-light: #1685d9;
+            --cyan: #36c5f0;
+            --white: #ffffff;
+            --text: #eaf2fc;
+            --muted: #9db1ca;
+            --border: rgba(255, 255, 255, 0.13);
+            --panel: rgba(9, 29, 57, 0.88);
+            --danger: #ff9b9b;
+            --success: #76e7bd;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
-        body { 
-            background-color: var(--primary-dark);
-            background-image: 
-                linear-gradient(rgba(10, 17, 40, 0.92), rgba(10, 17, 40, 0.95)), 
-                url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop');
-            background-size: cover;
-            background-attachment: fixed;
-            height: 100vh;
+        body {
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(
+                    circle at 15% 15%,
+                    rgba(18, 113, 202, 0.30),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 85% 85%,
+                    rgba(0, 190, 230, 0.12),
+                    transparent 35%
+                ),
+                linear-gradient(135deg, #06152c, #092b53 55%, #06152c);
             display: flex;
-            justify-content: center;
-            align-items: center;
-            color: var(--text-main); 
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .login-card {
-            background: var(--panel-glass);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-glass);
-            padding: 40px;
-            border-radius: 16px;
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            background-image:
+                linear-gradient(
+                    rgba(255, 255, 255, 0.04) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.04) 1px,
+                    transparent 1px
+                );
+            background-size: 42px 42px;
+        }
+
+        .topbar {
+            position: relative;
+            z-index: 1;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            text-align: center;
+            min-height: 76px;
+            padding: 17px 6%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            background: rgba(4, 17, 36, 0.76);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(14px);
         }
 
-        .brand-title {
-            background: linear-gradient(135deg, #ffffff 0%, #38bdf8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 22px;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-symbol {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #0a73c9, #093b75);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 21px;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 113, 206, 0.25);
+        }
+
+        .brand-name {
+            color: white;
+            font-size: 16px;
             font-weight: 800;
-            letter-spacing: 1.5px;
-            margin-bottom: 5px;
+            letter-spacing: 1.4px;
         }
 
-        .brand-sub {
+        .brand-caption {
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 3.5px;
+            margin-top: 4px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
             font-size: 12px;
-            color: var(--text-muted);
-            letter-spacing: 2px;
+            color: var(--muted);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px rgba(118, 231, 189, 0.55);
+        }
+
+        .cmyk-line {
+            position: relative;
+            z-index: 1;
+            height: 4px;
+            background: linear-gradient(
+                90deg,
+                #4ba7df 0%,
+                #4ba7df 25%,
+                #e6007e 25%,
+                #e6007e 50%,
+                #f7dc32 50%,
+                #f7dc32 75%,
+                #171717 75%,
+                #171717 100%
+            );
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            flex: 1;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 55px 28px;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            align-items: center;
+            gap: 65px;
+        }
+
+        .intro {
+            padding: 20px 0;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            border: 1px solid rgba(54, 197, 240, 0.30);
+            background: rgba(54, 197, 240, 0.08);
+            color: #9deaff;
+            padding: 9px 13px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
             margin-bottom: 25px;
         }
 
-        .cmyk-bar {
-            height: 4px;
+        .intro h1 {
+            font-size: clamp(32px, 4vw, 49px);
+            line-height: 1.12;
+            letter-spacing: -1.4px;
+            color: white;
+            margin-bottom: 22px;
+        }
+
+        .intro h1 span {
+            color: #69d4fa;
+        }
+
+        .intro-description {
+            max-width: 470px;
+            color: #b4c7df;
+            font-size: 15px;
+            line-height: 1.9;
+            margin-bottom: 32px;
+        }
+
+        .features {
+            display: grid;
+            gap: 15px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .feature-icon {
+            flex: 0 0 43px;
+            height: 43px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.055);
+            border-radius: 12px;
+            color: #75d8fa;
+            font-size: 18px;
+        }
+
+        .feature-text strong {
+            display: block;
+            color: #f3f8ff;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .feature-text small {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .login-card {
             width: 100%;
-            background: linear-gradient(90deg, #00b4d8 25%, #ff007f 25% 50%, #facc15 50% 75%, #0f172a 75%);
-            margin-bottom: 30px;
-            border-radius: 2px;
+            max-width: 430px;
+            justify-self: end;
+            padding: 36px;
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 22px;
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 28px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .card-heading {
+            margin-bottom: 26px;
+        }
+
+        .card-heading h2 {
+            font-size: 25px;
+            color: white;
+            margin-bottom: 9px;
+        }
+
+        .card-heading p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
         }
 
         .form-group {
             margin-bottom: 20px;
-            text-align: left;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            color: #d5e3f4;
             font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
+            font-weight: 650;
+            margin-bottom: 9px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8fa9c8;
+            font-size: 16px;
+            pointer-events: none;
         }
 
         input {
             width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--border-glass);
-            border-radius: 8px;
-            color: #ffffff;
+            min-height: 49px;
+            padding: 13px 45px 13px 42px;
+            border-radius: 10px;
+            background: rgba(3, 15, 32, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: white;
             font-size: 14px;
             outline: none;
-            transition: all 0.2s ease;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input::placeholder {
+            color: #6f86a4;
         }
 
         input:focus {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 3px rgba(54, 197, 240, 0.12);
         }
 
-        button.btn-login {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 7px;
+            border: 0;
+            background: transparent;
+            color: #9db1ca;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
-            transition: all 0.2s ease;
-            margin-top: 10px;
+            font-size: 12px;
         }
 
-        button.btn-login:hover {
-            opacity: 0.9;
+        .toggle-password:hover {
+            color: white;
         }
 
-        .footer-note {
-            margin-top: 25px;
+        .btn-login {
+            width: 100%;
+            min-height: 49px;
+            border: 0;
+            border-radius: 10px;
+            margin-top: 5px;
+            background: linear-gradient(135deg, #1685d9, #0756a5);
+            color: white;
+            font-size: 14px;
+            font-weight: 750;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(7, 86, 165, 0.28);
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(7, 133, 217, 0.35);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .btn-login:focus-visible,
+        .toggle-password:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 3px;
+        }
+
+        .message {
+            margin-top: 14px;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .message.error {
+            padding: 11px 12px;
+            border: 1px solid rgba(255, 155, 155, 0.25);
+            background: rgba(255, 80, 80, 0.08);
+            border-radius: 8px;
+            color: var(--danger);
+        }
+
+        .message.success {
+            color: var(--success);
+        }
+
+        .security-note {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--muted);
             font-size: 11px;
-            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .security-note span:first-child {
+            font-size: 15px;
+        }
+
+        footer {
+            position: relative;
+            z-index: 1;
+            padding: 19px 24px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: rgba(4, 17, 36, 0.45);
+            color: #849bb8;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 850px) {
+            main {
+                grid-template-columns: 1fr;
+                max-width: 540px;
+                gap: 35px;
+                padding: 40px 22px;
+            }
+
+            .intro {
+                text-align: center;
+                padding: 0;
+            }
+
+            .intro-description {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .features {
+                max-width: 380px;
+                margin: 0 auto;
+                text-align: left;
+            }
+
+            .login-card {
+                justify-self: center;
+                max-width: 480px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .topbar {
+                padding: 14px 18px;
+            }
+
+            .brand-name {
+                font-size: 13px;
+                letter-spacing: 0.8px;
+            }
+
+            .brand-caption {
+                font-size: 9px;
+                letter-spacing: 2.5px;
+            }
+
+            .brand-symbol {
+                width: 39px;
+                height: 39px;
+            }
+
+            .status {
+                font-size: 0;
+            }
+
+            main {
+                padding: 32px 16px;
+                gap: 30px;
+            }
+
+            .intro h1 {
+                font-size: 34px;
+            }
+
+            .intro-description {
+                font-size: 13px;
+            }
+
+            .login-card {
+                padding: 27px 21px;
+                border-radius: 17px;
+            }
+
+            .card-heading h2 {
+                font-size: 23px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+            }
         }
     </style>
 </head>
+
 <body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-symbol" aria-hidden="true">CM</div>
 
-    <div class="login-card">
-        <div class="brand-title">COPY MASTER</div>
-        <div class="brand-sub">TECHNOLOGY</div>
-        <div class="cmyk-bar"></div>
-
-        <form id="formLogin">
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="usuario" placeholder="Ingresa tu usuario" required autocomplete="username">
+            <div>
+                <div class="brand-name">COPY MASTER</div>
+                <div class="brand-caption">TECHNOLOGY</div>
             </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <div class="status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Portal empresarial</span>
+        </div>
+    </header>
+
+    <div class="cmyk-line" aria-hidden="true"></div>
+
+    <main>
+        <section class="intro">
+            <div class="eyebrow">
+                <span aria-hidden="true">✦</span>
+                Sistema de gestión empresarial
             </div>
-            <button type="submit" class="btn-login">Iniciar Sesión</button>
-        </form>
 
-        <div class="footer-note">Gestión de Inventario y Control de Equipos</div>
-    </div>
+            <h1>
+                Todo tu negocio.<br>
+                <span>En un solo lugar.</span>
+            </h1>
 
-<script>
-    document.getElementById('formLogin').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const usuario = document.getElementById('usuario').value.trim();
-        const password = document.getElementById('password').value.trim();
+            <p class="intro-description">
+                Administra inventarios, controla tus equipos de impresión
+                y coordina el servicio técnico desde una plataforma
+                diseñada para trabajar contigo.
+            </p>
 
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario, password })
-            });
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon" aria-hidden="true">▦</div>
+                    <div class="feature-text">
+                        <strong>Inventario organizado</strong>
+                        <small>Consulta existencias y controla los movimientos.</small>
+                    </div>
+                </div>
 
-            const data = await res.json();
+                <div class="feature">
+                    <div class="feature-icon" aria-hidden="true">⚙</div>
+                    <div class="feature-text">
+                        <strong>Control de equipos</strong>
+                        <small>Gestiona mantenimientos y seguimiento técnico.</small>
+                    </div>
+                </div>
 
-            if (res.ok && data.token) {
-                // Guardar datos de autenticación en el cliente
+                <div class="feature">
+                    <div class="feature-icon" aria-hidden="true">✓</div>
+                    <div class="feature-text">
+                        <strong>Accesos por perfil</strong>
+                        <small>Herramientas según las funciones de cada usuario.</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="login-card" aria-labelledby="loginTitle">
+            <div class="card-heading">
+                <h2 id="loginTitle">Bienvenido</h2>
+                <p>Ingresa tus credenciales para acceder al sistema.</p>
+            </div>
+
+            <form id="formLogin">
+                <div class="form-group">
+                    <label for="usuario">Usuario</label>
+
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">♙</span>
+
+                        <input
+                            type="text"
+                            id="usuario"
+                            name="usuario"
+                            placeholder="Ingresa tu usuario"
+                            autocomplete="username"
+                            maxlength="50"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+
+                    <div class="input-wrap">
+                        <span class="input-icon" aria-hidden="true">♙</span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Ingresa tu contraseña"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="toggle-password"
+                            id="togglePassword"
+                            aria-label="Mostrar contraseña"
+                            aria-pressed="false"
+                        >Ver</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login" id="btnLogin">
+                    Iniciar sesión
+                </button>
+
+                <p
+                    id="mensajeLogin"
+                    class="message"
+                    role="alert"
+                    aria-live="polite"
+                ></p>
+            </form>
+
+            <div class="security-note">
+                <span aria-hidden="true">🔒</span>
+                <span>
+                    Acceso exclusivo para personal autorizado.
+                    Tu perfil determina las funciones disponibles.
+                </span>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© <span id="anio"></span> Copy Master Technology</p>
+        <p>Gestión de inventario, equipos y servicio técnico.</p>
+    </footer>
+
+    <script>
+        const formLogin = document.getElementById('formLogin');
+        const btnLogin = document.getElementById('btnLogin');
+        const mensajeLogin = document.getElementById('mensajeLogin');
+        const inputUsuario = document.getElementById('usuario');
+        const inputPassword = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+
+        // Cada rol tiene su propio panel.
+        const paginasPorRol = {
+            admin: 'admin.html',
+            tecnico: 'tecnico.html',
+            almacen: 'almacen.html',
+            supervisor: 'supervisor.html'
+        };
+
+        document.getElementById('anio').textContent =
+            new Date().getFullYear();
+
+        togglePassword.addEventListener('click', () => {
+            const mostrar = inputPassword.type === 'password';
+
+            inputPassword.type = mostrar ? 'text' : 'password';
+            togglePassword.textContent = mostrar ? 'Ocultar' : 'Ver';
+            togglePassword.setAttribute(
+                'aria-label',
+                mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña'
+            );
+            togglePassword.setAttribute('aria-pressed', String(mostrar));
+        });
+
+        formLogin.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const usuario = inputUsuario.value.trim();
+            // No recortamos la contraseña para respetar su valor exacto.
+            const password = inputPassword.value;
+
+            mensajeLogin.textContent = '';
+            mensajeLogin.className = 'message';
+
+            if (!usuario || !password) {
+                mensajeLogin.textContent =
+                    'Completa el usuario y la contraseña.';
+                mensajeLogin.classList.add('error');
+                return;
+            }
+
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Verificando acceso...';
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        usuario,
+                        password
+                    })
+                });
+
+                let data;
+
+                try {
+                    data = await response.json();
+                } catch {
+                    throw new Error(
+                        'El servidor devolvió una respuesta no válida.'
+                    );
+                }
+
+                if (!response.ok || !data.token) {
+                    throw new Error(
+                        data.error || 'Usuario o contraseña incorrectos.'
+                    );
+                }
+
+                const destino = paginasPorRol[data.rol];
+
+                if (!destino) {
+                    throw new Error(
+                        'Tu perfil no tiene un panel configurado. Contacta al administrador.'
+                    );
+                }
+
+                // Guardamos la sesión recibida del servidor.
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('rol', data.rol);
-                localStorage.setItem('nombre', data.nombre || data.usuario);
+                localStorage.setItem(
+                    'nombre',
+                    data.nombre || usuario
+                );
 
-                // Enrutamiento según rol de acceso
-                if (data.rol === 'admin' || data.rol === 'almacen' || data.rol === 'tecnico') {
-                    window.location.href = 'almacen.html';
-                } else if (data.rol === 'supervisor') {
-                    window.location.href = 'supervisor.html';
-                } else {
-                    window.location.href = 'almacen.html';
-                }
-            } else {
-                alert(data.error || 'Credenciales incorrectas');
+                // Evitamos regresar al formulario con una navegación normal.
+                window.location.replace(destino);
+
+            } catch (error) {
+                console.error('Error de inicio de sesión:', error);
+
+                mensajeLogin.textContent =
+                    error instanceof TypeError
+                        ? 'No se pudo conectar con el servidor. Verifica que esté disponible.'
+                        : error.message || 'Ocurrió un error inesperado.';
+
+                mensajeLogin.classList.add('error');
+
+            } finally {
+                btnLogin.disabled = false;
+                btnLogin.textContent = 'Iniciar sesión';
             }
-        } catch (err) {
-            console.error('Error durante el inicio de sesión:', err);
-            alert('Error de conexión con el servidor.');
-        }
-    });
-</script>
-
+        });
+    </script>
 </body>
 </html>

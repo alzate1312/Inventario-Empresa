@@ -418,6 +418,33 @@ app.get('/api/supervisor/auditoria', autenticar, permitirRoles('admin', 'supervi
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+// RUTA TEMPORAL GRATUITA PARA INSPECCIONAR TABLAS Y COLUMNAS
+app.get('/api/debug/tablas', async (req, res) => {
+  try {
+    const [tablas] = await pool.query(
+      `SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE'`,
+      [process.env.DB_NAME]
+    );
+
+    let estructura = {};
+
+    for (const tabla of tablas) {
+      const nombreTabla = tabla.TABLE_NAME;
+      const [columnas] = await pool.query(
+        `SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_KEY, COLUMN_DEFAULT 
+         FROM information_schema.COLUMNS 
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? 
+         ORDER BY ORDINAL_POSITION`,
+        [process.env.DB_NAME, nombreTabla]
+      );
+      estructura[nombreTabla] = columnas;
+    }
+
+    res.json(estructura);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`);

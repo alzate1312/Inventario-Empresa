@@ -4,15 +4,17 @@ const path = require('path');
 const multer = require('multer');
 const XLSX = require('xlsx');
 const fs = require('fs');
+const jwt = require('jwt-simple');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'copymaster_secret_key_2026_secure';
 
 // Configuración de Multer para carga de archivos temporales
 const upload = multer({ dest: 'uploads/' });
 
-// Middleware
+// Middleware Base
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -41,7 +43,42 @@ pool.getConnection()
   });
 
 // ==========================================
-// RUTAS DE AUTENTICACIÓN Y USUARIOS
+// MIDDLEWARES DE SEGURIDAD (JWT & ROLES)
+// ==========================================
+
+function autenticar(req, res, next) {
+  const cabecera = req.headers.authorization;
+  const token = cabecera?.startsWith('Bearer ') ? cabecera.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Debes iniciar sesión.' });
+  }
+
+  try {
+    const usuario = jwt.decode(token, JWT_SECRET);
+
+    if (!usuario.id || !usuario.rol || !usuario.exp || usuario.exp <= Math.floor(Date.now() / 1000)) {
+      return res.status(401).json({ error: 'Sesión inválida o vencida.' });
+    }
+
+    req.usuario = usuario;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
+}
+
+function permitirRoles(...roles) {
+  return (req, res, next) => {
+    if (!roles.includes(req.usuario.rol)) {
+      return res.status(403).json({ error: 'No tienes permisos para esta operación.' });
+    }
+    next();
+  };
+}
+
+// ==========================================
+// RUTAS DE AUTENTICACIÓN
 // ==========================================
 
 app.post('/api/login', async (req, res) => {
@@ -50,7 +87,20 @@ app.post('/api/login', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM usuarios WHERE usuario = ? AND password = ?', [usuario, password]);
     if (rows.length > 0) {
       const user = rows[0];
-      res.json({ mensaje: 'Login exitoso', rol: user.rol, nombre: user.nombre });
+      
+      // Generar Token JWT con vigencia de 8 horas
+      const token = jwt.encode({
+        id: user.id_usuario || user.id,
+        rol: user.rol,
+        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 8)
+      }, JWT_SECRET);
+
+      res.json({ 
+        mensaje: 'Login exitoso', 
+        token, 
+        rol: user.rol, 
+        nombre: user.nombre 
+      });
     } else {
       res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
@@ -61,11 +111,11 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ==========================================
-// RUTAS DE ALMACÉN Y REPUESTOS
+// RUTAS DE ALMACÉN Y REPUESTOS (PROTEGIDAS)
 // ==========================================
 
 // Obtener catálogo de repuestos
-app.get('/api/repuestos', async (req, res) => {
+app.get('/api/repuestos', autenticar, permitirRoles('admin', 'almacen', 'supervisor', 'tecnico'), async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM repuestos ORDER BY id_repuesto DESC');
     res.json(rows);
@@ -76,7 +126,7 @@ app.get('/api/repuestos', async (req, res) => {
 });
 
 // Crear repuesto individual
-app.post('/api/repuestos', async (req, res) => {
+app.post('/api/repuestos', autenticar, permitirRoles('admin', 'almacen'), async (req, res) => {
   const { codigo_interno, descripcion, estado_repuesto, uso_destino, stock_minimo } = req.body;
   try {
     await pool.query(
@@ -91,61 +141,110 @@ app.post('/api/repuestos', async (req, res) => {
   }
 });
 
-// Registrar movimiento (Entrada / Salida) con actualización automática de stock
-app.post('/api/almacen/movimiento', async (req, res) => {
-  const { 
-    tipo_movimiento, id_repuesto, cantidad, 
-    numero_factura, proveedor, costo_unitario, 
-    motivo_salida, entregado_a, cliente, serial_maquina 
+// REGISTRO ATÓMICO DE MOVIMIENTOS (TRANSACCIONAL)
+app.post('/api/almacen/movimiento', autenticar, permitirRoles('admin', 'almacen'), async (req, res) => {
+  const {
+    tipo_movimiento,
+    id_repuesto,
+    cantidad,
+    costo_unitario,
+    numero_factura,
+    proveedor,
+    motivo_salida,
+    entregado_a,
+    cliente,
+    cliente_final,
+    serial_maquina,
+    codigo_interno_maquina,
+    referencia_maquina
   } = req.body;
 
-  if (!id_repuesto || !cantidad || cantidad <= 0) {
-    return res.status(400).json({ error: 'Debe seleccionar un repuesto y una cantidad válida' });
+  if (!['ENTRADA', 'SALIDA'].includes(tipo_movimiento)) {
+    return res.status(400).json({ error: 'Tipo de movimiento inválido.' });
   }
 
-  const conn = await pool.getConnection();
+  const id = Number(id_repuesto);
+  const cant = Number(cantidad);
+
+  if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(cant) || cant <= 0) {
+    return res.status(400).json({ error: 'Repuesto o cantidad inválidos.' });
+  }
+
+  if (tipo_movimiento === 'ENTRADA' && costo_unitario != null && (!Number.isFinite(Number(costo_unitario)) || Number(costo_unitario) < 0)) {
+    return res.status(400).json({ error: 'El costo unitario no es válido.' });
+  }
+
+  let conexion;
+  let transaccionIniciada = false;
+
   try {
-    await conn.beginTransaction();
+    conexion = await pool.getConnection();
+    await conexion.beginTransaction();
+    transaccionIniciada = true;
 
-    const [rep] = await conn.query('SELECT stock_actual FROM repuestos WHERE id_repuesto = ?', [id_repuesto]);
-    if (rep.length === 0) {
-      await conn.rollback();
-      return res.status(404).json({ error: 'Repuesto no encontrado' });
-    }
-
-    let nuevoStock = rep[0].stock_actual;
+    let actualizacion;
     if (tipo_movimiento === 'ENTRADA') {
-      nuevoStock += parseInt(cantidad);
-    } else if (tipo_movimiento === 'SALIDA') {
-      if (nuevoStock < cantidad) {
-        await conn.rollback();
-        return res.status(400).json({ error: `Stock insuficiente. Stock actual: ${nuevoStock}` });
-      }
-      nuevoStock -= parseInt(cantidad);
+      [actualizacion] = await conexion.query(
+        `UPDATE repuestos SET stock_actual = stock_actual + ? WHERE id_repuesto = ?`,
+        [cant, id]
+      );
+    } else {
+      [actualizacion] = await conexion.query(
+        `UPDATE repuestos SET stock_actual = stock_actual - ? WHERE id_repuesto = ? AND stock_actual >= ?`,
+        [cant, id, cant]
+      );
     }
 
-    await conn.query(
-      `INSERT INTO movimientos_almacen 
-       (tipo_movimiento, id_repuesto, cantidad, numero_factura, proveedor, costo_unitario, motivo_salida, entregado_a, cliente, serial_maquina) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tipo_movimiento, id_repuesto, cantidad, numero_factura || null, proveedor || null, costo_unitario || null, motivo_salida || null, entregado_a || null, cliente || null, serial_maquina || null]
+    if (actualizacion.affectedRows !== 1) {
+      const [repuestos] = await conexion.query('SELECT id_repuesto FROM repuestos WHERE id_repuesto = ?', [id]);
+      await conexion.rollback();
+      transaccionIniciada = false;
+
+      if (!repuestos.length) {
+        return res.status(404).json({ error: 'El repuesto no existe.' });
+      }
+      return res.status(409).json({ error: 'Stock insuficiente para realizar la salida.' });
+    }
+
+    const costo = tipo_movimiento === 'ENTRADA' && costo_unitario != null ? Number(costo_unitario) : null;
+    const total = costo == null ? null : costo * cant;
+
+    await conexion.query(
+      `INSERT INTO movimientos_almacen (
+        tipo_movimiento, id_repuesto, cantidad,
+        costo_unitario, costo_total, numero_factura,
+        proveedor, motivo_salida, entregado_a, cliente,
+        cliente_final, serial_maquina,
+        codigo_interno_maquina, referencia_maquina
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        tipo_movimiento, id, cant,
+        costo, total, numero_factura || null,
+        proveedor || null, motivo_salida || null,
+        entregado_a || null, cliente || null,
+        cliente_final || null, serial_maquina || null,
+        codigo_interno_maquina || null,
+        referencia_maquina || null
+      ]
     );
 
-    await conn.query('UPDATE repuestos SET stock_actual = ? WHERE id_repuesto = ?', [nuevoStock, id_repuesto]);
+    await conexion.commit();
+    transaccionIniciada = false;
 
-    await conn.commit();
-    res.json({ mensaje: 'Movimiento registrado y stock actualizado con éxito' });
-  } catch (err) {
-    await conn.rollback();
-    console.error('Error en movimiento de almacén:', err);
-    res.status(500).json({ error: 'Error al procesar el movimiento' });
+    return res.status(201).json({ mensaje: 'Movimiento registrado y stock actualizado.' });
+  } catch (error) {
+    if (conexion && transaccionIniciada) {
+      await conexion.rollback();
+    }
+    console.error('Error en movimiento de almacén:', error);
+    return res.status(500).json({ error: 'No se pudo registrar el movimiento.' });
   } finally {
-    conn.release();
+    if (conexion) conexion.release();
   }
 });
 
 // Consultar historial de movimientos (Kardex)
-app.get('/api/almacen/movimientos', async (req, res) => {
+app.get('/api/almacen/movimientos', autenticar, permitirRoles('admin', 'almacen', 'supervisor'), async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT m.*, r.codigo_interno, r.descripcion 
@@ -161,10 +260,10 @@ app.get('/api/almacen/movimientos', async (req, res) => {
 });
 
 // ==========================================
-// IMPORTACIÓN MASIVA FLEXIBLE (EXCEL / CSV) - CON FIX USO_DESTINO
+// IMPORTACIÓN MASIVA FLEXIBLE (PROTEGIDA)
 // ==========================================
 
-app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => {
+app.post('/api/repuestos/upload', autenticar, permitirRoles('admin', 'almacen'), upload.single('archivo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No se subió ningún archivo" });
   
   try {
@@ -201,8 +300,6 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
       }
 
       const estado = item.estado_repuesto || item.Estado || item.ESTADO || 'Usado';
-      
-      // Control del valor para uso_destino (Acepta ENUM / VARCHAR sin recortar error)
       let uso = 'Ambos';
       const rawUso = item.uso_destino || item.Uso || item['TIPO COBRO'] || '';
       const usoUpper = String(rawUso).toUpperCase();
@@ -245,10 +342,10 @@ app.post('/api/repuestos/upload', upload.single('archivo'), async (req, res) => 
 });
 
 // ==========================================
-// RUTAS DE SUPERVISOR
+// RUTAS DE SUPERVISOR (PROTEGIDAS)
 // ==========================================
 
-app.get('/api/supervisor/alertas', async (req, res) => {
+app.get('/api/supervisor/alertas', autenticar, permitirRoles('admin', 'supervisor'), async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT r.*, 
@@ -264,13 +361,13 @@ app.get('/api/supervisor/alertas', async (req, res) => {
   }
 });
 
-app.post('/api/supervisor/autorizar', async (req, res) => {
+app.post('/api/supervisor/autorizar', autenticar, permitirRoles('admin', 'supervisor'), async (req, res) => {
   const { id_repuesto, autorizado_por } = req.body;
   try {
     await pool.query(
       `INSERT INTO autorizaciones_compra (id_repuesto, estado, autorizado_por) 
        VALUES (?, 'AUTORIZADO', ?)`,
-      [id_repuesto, autorizado_por || 'Supervisor']
+      [id_repuesto, autorizado_por || req.usuario.nombre || 'Supervisor']
     );
     res.json({ mensaje: 'Orden de compra autorizada con éxito' });
   } catch (err) {
@@ -279,7 +376,7 @@ app.post('/api/supervisor/autorizar', async (req, res) => {
   }
 });
 
-app.get('/api/supervisor/auditoria', async (req, res) => {
+app.get('/api/supervisor/auditoria', autenticar, permitirRoles('admin', 'supervisor'), async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT a.*, r.codigo_interno, r.descripcion 

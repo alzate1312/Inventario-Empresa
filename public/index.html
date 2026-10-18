@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -173,92 +172,14 @@
             max-width: 1180px;
             margin: 0 auto;
             padding: 55px 28px;
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
-            align-items: center;
-            gap: 65px;
-        }
-
-        .intro {
-            padding: 20px 0;
-        }
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            border: 1px solid rgba(54, 197, 240, 0.30);
-            background: rgba(54, 197, 240, 0.08);
-            color: #9deaff;
-            padding: 9px 13px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.3px;
-            text-transform: uppercase;
-            margin-bottom: 25px;
-        }
-
-        .intro h1 {
-            font-size: clamp(32px, 4vw, 49px);
-            line-height: 1.12;
-            letter-spacing: -1.4px;
-            color: white;
-            margin-bottom: 22px;
-        }
-
-        .intro h1 span {
-            color: #69d4fa;
-        }
-
-        .intro-description {
-            max-width: 470px;
-            color: #b4c7df;
-            font-size: 15px;
-            line-height: 1.9;
-            margin-bottom: 32px;
-        }
-
-        .features {
-            display: grid;
-            gap: 15px;
-        }
-
-        .feature {
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 14px;
-        }
-
-        .feature-icon {
-            flex: 0 0 43px;
-            height: 43px;
-            display: grid;
-            place-items: center;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.055);
-            border-radius: 12px;
-            color: #75d8fa;
-            font-size: 19px;
-        }
-
-        .feature-text strong {
-            display: block;
-            color: #f3f8ff;
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-
-        .feature-text small {
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.5;
         }
 
         .login-card {
             width: 100%;
             max-width: 430px;
-            justify-self: end;
             padding: 36px;
             background: var(--panel);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -271,6 +192,7 @@
 
         .card-heading {
             margin-bottom: 26px;
+            text-align: center;
         }
 
         .card-heading h2 {
@@ -433,36 +355,6 @@
             line-height: 1.7;
         }
 
-        @media (max-width: 850px) {
-            main {
-                grid-template-columns: 1fr;
-                max-width: 540px;
-                gap: 35px;
-                padding: 40px 22px;
-            }
-
-            .intro {
-                text-align: center;
-                padding: 0;
-            }
-
-            .intro-description {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .features {
-                max-width: 380px;
-                margin: 0 auto;
-                text-align: left;
-            }
-
-            .login-card {
-                justify-self: center;
-                max-width: 480px;
-            }
-        }
-
         @media (max-width: 480px) {
             .topbar {
                 padding: 14px 18px;
@@ -489,15 +381,6 @@
 
             main {
                 padding: 32px 16px;
-                gap: 30px;
-            }
-
-            .intro h1 {
-                font-size: 34px;
-            }
-
-            .intro-description {
-                font-size: 13px;
             }
 
             .login-card {
@@ -541,56 +424,6 @@
     <div class="cmyk-line" aria-hidden="true"></div>
 
     <main>
-        <section class="intro">
-            <div class="eyebrow">
-                <span aria-hidden="true">✦</span>
-                Sistema de gestión empresarial
-            </div>
-
-            <h1>
-                Todo tu negocio.<br>
-                <span>En un solo lugar.</span>
-            </h1>
-
-            <p class="intro-description">
-                Administra inventarios, controla tus equipos de impresión
-                y coordina el servicio técnico desde una plataforma
-                diseñada para trabajar contigo.
-            </p>
-
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon" aria-hidden="true">▦</div>
-                    <div class="feature-text">
-                        <strong>Inventario organizado</strong>
-                        <small>
-                            Consulta existencias y controla los movimientos.
-                        </small>
-                    </div>
-                </div>
-
-                <div class="feature">
-                    <div class="feature-icon" aria-hidden="true">⚙</div>
-                    <div class="feature-text">
-                        <strong>Control de equipos</strong>
-                        <small>
-                            Gestiona mantenimientos y seguimiento técnico.
-                        </small>
-                    </div>
-                </div>
-
-                <div class="feature">
-                    <div class="feature-icon" aria-hidden="true">✓</div>
-                    <div class="feature-text">
-                        <strong>Accesos por perfil</strong>
-                        <small>
-                            Herramientas según las funciones de cada usuario.
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section class="login-card" aria-labelledby="loginTitle">
             <div class="card-heading">
                 <h2 id="loginTitle">Bienvenido a CMT</h2>
@@ -604,7 +437,7 @@
                     <label for="usuario">Usuario</label>
 
                     <div class="input-wrap">
-                        <span class="input-icon" aria-hidden="true">♙</span>
+                        <span class="input-icon" aria-hidden="true">👤</span>
 
                         <input
                             type="text"
@@ -682,7 +515,6 @@
         const inputPassword = document.getElementById('password');
         const togglePassword = document.getElementById('togglePassword');
 
-        // Panel asignado a cada perfil.
         const paginasPorRol = {
             admin: 'admin.html',
             tecnico: 'tecnico.html',
@@ -690,11 +522,8 @@
             supervisor: 'supervisor.html'
         };
 
-        // Actualizar el año automáticamente.
-        document.getElementById('anio').textContent =
-            new Date().getFullYear();
+        document.getElementById('anio').textContent = new Date().getFullYear();
 
-        // Mostrar u ocultar la contraseña.
         togglePassword.addEventListener('click', () => {
             const mostrar = inputPassword.type === 'password';
 
@@ -712,13 +541,11 @@
             );
         });
 
-        // Mensajes de respuesta.
         function mostrarMensaje(texto, tipo = 'error') {
             mensajeLogin.textContent = texto;
             mensajeLogin.className = 'message ' + tipo;
         }
 
-        // Procesar el inicio de sesión.
         formLogin.addEventListener('submit', async (event) => {
             event.preventDefault();
 
@@ -760,17 +587,8 @@
                     return;
                 }
 
-                // No permitir redirecciones para roles desconocidos.
-                const pagina = paginasPorRol[data.rol];
+                const pagina = paginasPorRol[data.rol] || 'almacen.html';
 
-                if (!pagina) {
-                    mostrarMensaje(
-                        'El perfil recibido no tiene un panel configurado.'
-                    );
-                    return;
-                }
-
-                // Guardar la sesión emitida por el servidor.
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('rol', data.rol);
                 localStorage.setItem(
@@ -803,4 +621,3 @@
     </script>
 </body>
 </html>
-```

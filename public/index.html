@@ -1,13 +1,13 @@
-
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#073B78">
-    <meta name="description" content="Sistema de gestión de inventario y control de equipos de Copy Master Technology.">
+    <meta name="description" content="CMT - Copy Master Technology. Sistema de gestión de inventario, equipos y servicio técnico.">
 
-    <title>Copy Master Technology | Iniciar sesión</title>
+    <title>CMT | Copy Master Technology</title>
 
     <style>
         :root {
@@ -20,7 +20,7 @@
             --text: #eaf2fc;
             --muted: #9db1ca;
             --border: rgba(255, 255, 255, 0.13);
-            --panel: rgba(9, 29, 57, 0.88);
+            --panel: rgba(9, 29, 57, 0.90);
             --danger: #ff9b9b;
             --success: #76e7bd;
         }
@@ -46,7 +46,12 @@
                     rgba(0, 190, 230, 0.12),
                     transparent 35%
                 ),
-                linear-gradient(135deg, #06152c, #092b53 55%, #06152c);
+                linear-gradient(
+                    135deg,
+                    #06152c,
+                    #092b53 55%,
+                    #06152c
+                );
             display: flex;
             flex-direction: column;
             position: relative;
@@ -94,15 +99,21 @@
         }
 
         .brand-symbol {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
             border-radius: 12px;
             display: grid;
             place-items: center;
-            background: linear-gradient(135deg, #0a73c9, #093b75);
+            background: linear-gradient(
+                135deg,
+                #0a73c9,
+                #093b75
+            );
             border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 21px;
+            font-size: 20px;
             font-weight: 900;
+            letter-spacing: -1px;
             color: white;
             box-shadow: 0 5px 20px rgba(0, 113, 206, 0.25);
         }
@@ -228,7 +239,7 @@
             background: rgba(255, 255, 255, 0.055);
             border-radius: 12px;
             color: #75d8fa;
-            font-size: 18px;
+            font-size: 19px;
         }
 
         .feature-text strong {
@@ -296,14 +307,14 @@
             top: 50%;
             transform: translateY(-50%);
             color: #8fa9c8;
-            font-size: 16px;
+            font-size: 17px;
             pointer-events: none;
         }
 
         input {
             width: 100%;
             min-height: 49px;
-            padding: 13px 45px 13px 42px;
+            padding: 13px 65px 13px 42px;
             border-radius: 10px;
             background: rgba(3, 15, 32, 0.62);
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -345,7 +356,11 @@
             border: 0;
             border-radius: 10px;
             margin-top: 5px;
-            background: linear-gradient(135deg, #1685d9, #0756a5);
+            background: linear-gradient(
+                135deg,
+                #1685d9,
+                #0756a5
+            );
             color: white;
             font-size: 14px;
             font-weight: 750;
@@ -509,7 +524,7 @@
 <body>
     <header class="topbar">
         <div class="brand">
-            <div class="brand-symbol" aria-hidden="true">CM</div>
+            <div class="brand-symbol" aria-label="CMT">CMT</div>
 
             <div>
                 <div class="brand-name">COPY MASTER</div>
@@ -519,7 +534,7 @@
 
         <div class="status">
             <span class="status-dot" aria-hidden="true"></span>
-            <span>Portal empresarial</span>
+            <span>Portal empresarial CMT</span>
         </div>
     </header>
 
@@ -548,7 +563,9 @@
                     <div class="feature-icon" aria-hidden="true">▦</div>
                     <div class="feature-text">
                         <strong>Inventario organizado</strong>
-                        <small>Consulta existencias y controla los movimientos.</small>
+                        <small>
+                            Consulta existencias y controla los movimientos.
+                        </small>
                     </div>
                 </div>
 
@@ -556,7 +573,9 @@
                     <div class="feature-icon" aria-hidden="true">⚙</div>
                     <div class="feature-text">
                         <strong>Control de equipos</strong>
-                        <small>Gestiona mantenimientos y seguimiento técnico.</small>
+                        <small>
+                            Gestiona mantenimientos y seguimiento técnico.
+                        </small>
                     </div>
                 </div>
 
@@ -564,7 +583,9 @@
                     <div class="feature-icon" aria-hidden="true">✓</div>
                     <div class="feature-text">
                         <strong>Accesos por perfil</strong>
-                        <small>Herramientas según las funciones de cada usuario.</small>
+                        <small>
+                            Herramientas según las funciones de cada usuario.
+                        </small>
                     </div>
                 </div>
             </div>
@@ -572,8 +593,10 @@
 
         <section class="login-card" aria-labelledby="loginTitle">
             <div class="card-heading">
-                <h2 id="loginTitle">Bienvenido</h2>
-                <p>Ingresa tus credenciales para acceder al sistema.</p>
+                <h2 id="loginTitle">Bienvenido a CMT</h2>
+                <p>
+                    Ingresa tus credenciales para acceder al sistema.
+                </p>
             </div>
 
             <form id="formLogin">
@@ -599,7 +622,7 @@
                     <label for="password">Contraseña</label>
 
                     <div class="input-wrap">
-                        <span class="input-icon" aria-hidden="true">♙</span>
+                        <span class="input-icon" aria-hidden="true">🔒</span>
 
                         <input
                             type="password"
@@ -620,7 +643,11 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-login" id="btnLogin">
+                <button
+                    type="submit"
+                    class="btn-login"
+                    id="btnLogin"
+                >
                     Iniciar sesión
                 </button>
 
@@ -643,7 +670,7 @@
     </main>
 
     <footer>
-        <p>© <span id="anio"></span> Copy Master Technology</p>
+        <p>© <span id="anio"></span> CMT — Copy Master Technology</p>
         <p>Gestión de inventario, equipos y servicio técnico.</p>
     </footer>
 
@@ -655,7 +682,7 @@
         const inputPassword = document.getElementById('password');
         const togglePassword = document.getElementById('togglePassword');
 
-        // Cada rol tiene su propio panel.
+        // Panel asignado a cada perfil.
         const paginasPorRol = {
             admin: 'admin.html',
             tecnico: 'tecnico.html',
@@ -663,35 +690,48 @@
             supervisor: 'supervisor.html'
         };
 
+        // Actualizar el año automáticamente.
         document.getElementById('anio').textContent =
             new Date().getFullYear();
 
+        // Mostrar u ocultar la contraseña.
         togglePassword.addEventListener('click', () => {
             const mostrar = inputPassword.type === 'password';
 
             inputPassword.type = mostrar ? 'text' : 'password';
             togglePassword.textContent = mostrar ? 'Ocultar' : 'Ver';
+
             togglePassword.setAttribute(
                 'aria-label',
                 mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña'
             );
-            togglePassword.setAttribute('aria-pressed', String(mostrar));
+
+            togglePassword.setAttribute(
+                'aria-pressed',
+                String(mostrar)
+            );
         });
 
+        // Mensajes de respuesta.
+        function mostrarMensaje(texto, tipo = 'error') {
+            mensajeLogin.textContent = texto;
+            mensajeLogin.className = 'message ' + tipo;
+        }
+
+        // Procesar el inicio de sesión.
         formLogin.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const usuario = inputUsuario.value.trim();
-            // No recortamos la contraseña para respetar su valor exacto.
             const password = inputPassword.value;
 
             mensajeLogin.textContent = '';
             mensajeLogin.className = 'message';
 
             if (!usuario || !password) {
-                mensajeLogin.textContent =
-                    'Completa el usuario y la contraseña.';
-                mensajeLogin.classList.add('error');
+                mostrarMensaje(
+                    'Ingresa tu usuario y contraseña.'
+                );
                 return;
             }
 
@@ -705,36 +745,32 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        usuario,
-                        password
+                        usuario: usuario,
+                        password: password
                     })
                 });
 
-                let data;
-
-                try {
-                    data = await response.json();
-                } catch {
-                    throw new Error(
-                        'El servidor devolvió una respuesta no válida.'
-                    );
-                }
+                const data = await response.json();
 
                 if (!response.ok || !data.token) {
-                    throw new Error(
-                        data.error || 'Usuario o contraseña incorrectos.'
+                    mostrarMensaje(
+                        data.error ||
+                        'Usuario o contraseña incorrectos.'
                     );
+                    return;
                 }
 
-                const destino = paginasPorRol[data.rol];
+                // No permitir redirecciones para roles desconocidos.
+                const pagina = paginasPorRol[data.rol];
 
-                if (!destino) {
-                    throw new Error(
-                        'Tu perfil no tiene un panel configurado. Contacta al administrador.'
+                if (!pagina) {
+                    mostrarMensaje(
+                        'El perfil recibido no tiene un panel configurado.'
                     );
+                    return;
                 }
 
-                // Guardamos la sesión recibida del servidor.
+                // Guardar la sesión emitida por el servidor.
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('rol', data.rol);
                 localStorage.setItem(
@@ -742,18 +778,22 @@
                     data.nombre || usuario
                 );
 
-                // Evitamos regresar al formulario con una navegación normal.
-                window.location.replace(destino);
+                mostrarMensaje(
+                    'Acceso correcto. Abriendo tu panel...',
+                    'success'
+                );
+
+                window.location.replace(pagina);
 
             } catch (error) {
-                console.error('Error de inicio de sesión:', error);
+                console.error(
+                    'Error durante el inicio de sesión:',
+                    error
+                );
 
-                mensajeLogin.textContent =
-                    error instanceof TypeError
-                        ? 'No se pudo conectar con el servidor. Verifica que esté disponible.'
-                        : error.message || 'Ocurrió un error inesperado.';
-
-                mensajeLogin.classList.add('error');
+                mostrarMensaje(
+                    'No se pudo conectar con el servidor. Intenta nuevamente.'
+                );
 
             } finally {
                 btnLogin.disabled = false;
@@ -763,3 +803,4 @@
     </script>
 </body>
 </html>
+```
